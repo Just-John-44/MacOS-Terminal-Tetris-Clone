@@ -73,14 +73,41 @@ int block::color(){
 
 // TETRIS_GRID CLASS ==========================================================
 
+tetris_grid::tetris_grid(){
+    generator_seed = time(0);
+    srand(generator_seed);
+
+    curr_block = &tetris_blocks[rand() % 7];
+    rotation_offset = curr_block->shapeArray();
+    next_block = &tetris_blocks[rand() % 7];
+
+    grid.resize(GRID_HEIGHT * GRID_LENGTH);
+}
+
+void print_grid(WINDOW* grid_win){
+    int win_height, win_length;
+    getmaxyx(grid_win, win_height, win_length);
+
+    if (win_height < (GRID_HEIGHT * 3) + 2 || 
+        win_length < (GRID_LENGTH * 3) + 2)
+        return;
+
+    wprintw(grid_win, "Hello, there!\n");
+    wrefresh(grid_win);
+
+    // for (int i = 0; i < GRID_SIZE; i++){
+
+    // }
+}
+
 void tetris_grid::rotateR(block* curr_block, const int* &rotation_offset){
     const int* array_start = curr_block->shapeArray();
     int m_shape_stride = curr_block->shapeStride();
     
-    if (array_start = O_BLOCK_ARR) 
+    if (array_start == O_BLOCK_ARR) 
         return;
 
-    if (rotation_offset = array_start + (m_shape_stride * (POSSIBLE_ROTATIONS - 1))){
+    if (rotation_offset == array_start + (m_shape_stride * (POSSIBLE_ROTATIONS - 1))){
         rotation_offset = array_start;
     } else {
         rotation_offset += m_shape_stride;
@@ -88,10 +115,11 @@ void tetris_grid::rotateR(block* curr_block, const int* &rotation_offset){
 }
 
 void tetris_grid::rotateL(block* curr_block, const int* &rotation_offset){
+
     const int* array_start = curr_block->shapeArray();
     int m_shape_stride = curr_block->shapeStride();
     
-    if (array_start = O_BLOCK_ARR) 
+    if (array_start == O_BLOCK_ARR) 
         return;
 
     if (rotation_offset == array_start){
@@ -99,4 +127,10 @@ void tetris_grid::rotateL(block* curr_block, const int* &rotation_offset){
     } else {
         rotation_offset -= m_shape_stride;
     }
+}
+
+void tetris_grid::generateNextBlock(){
+    curr_block = next_block;
+    rotation_offset = curr_block->shapeArray();
+    next_block = &tetris_blocks[rand() % 7];
 }

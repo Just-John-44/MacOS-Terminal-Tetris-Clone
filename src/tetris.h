@@ -18,44 +18,44 @@ enum block_type {
     O_BLOCK
 };
 
-const int L_BLOCK_ARR[36]
+const int L_BLOCK_ARR[36] = 
 {
     0, 0, 1,  0, 1, 0,  0, 0, 0,  1, 1, 0,  // [ ]
     1, 1, 1,  0, 1, 0,  1, 1, 1,  0, 1, 0,  // [ ]		[ ][_][_]
     0, 0, 0,  0, 1, 1,  1, 0, 0,  0, 1, 0   // [_][_]	[_]
 };
-const int J_BLOCK_ARR[36]
+const int J_BLOCK_ARR[36] = 
 {
     1, 0, 0,  0, 1, 1,  0, 0, 0,  0, 1, 0,  // [ ][ ]
     1, 1, 1,  0, 1, 0,  1, 1, 1,  0, 1, 0,  // [ ]		[_][_][ ]
     0, 0, 0,  0, 1, 0,  0, 0, 1,  1, 1, 0   // [_]   	      [_]
 };
-const int T_BLOCK_ARR[36]
+const int T_BLOCK_ARR[36] = 
 {
     0, 1, 0,  0, 1, 0,  0, 0, 0,  0, 1, 0,  // [ ]		
     1, 1, 1,  0, 1, 1,  1, 1, 1,  1, 1, 0,  // [ ][_]	   [ ]
     0, 0, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0   // [_]		[_][_][_]
 };
-const int I_BLOCK_ARR[64]
+const int I_BLOCK_ARR[64] = 
 {
     0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0,  // [ ]	
     1, 1, 1, 1,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0,  // [ ]	
     0, 0, 0, 0,  0, 0, 1, 0,  1, 1, 1, 1,  0, 1, 0, 0,  // [ ]	
     0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0   // [_]	[_][_][_][_]
 }; 
-const int S_BLOCK_ARR[36]
+const int S_BLOCK_ARR[36] = 
 {
     0, 1, 1,  0, 1, 0,  0, 0, 0,  1, 0, 0,  // [ ]		
     1, 1, 0,  0, 1, 1,  0, 1, 1,  1, 1, 0,  // [_][ ]	   [ ][_]
     0, 0, 0,  0, 0, 1,  1, 1, 0,  0, 1, 0   //    [_]	[_][_]	
 };
-const int Z_BLOCK_ARR[36]
+const int Z_BLOCK_ARR[36] = 
 {
     1, 1, 0,  0, 0, 1,  0, 0, 0,  0, 1, 0,  //    [ ]	
     0, 1, 1,  0, 1, 1,  1, 1, 0,  1, 1, 0,  // [ ][_]	[_][ ]
     0, 0, 0,  0, 1, 0,  0, 1, 1,  1, 0, 0   // [_]	 	   [_][_]
 };
-const int O_BLOCK_ARR[9]
+const int O_BLOCK_ARR[9] = 
 {
     1, 1, 0,    // [ ][ ]	[ ][ ]  // The O block doesnt change when rotated,
     1, 1, 0,    // [_][_]	[_][_]  // so there is no need to have multiple 
@@ -83,13 +83,19 @@ class block {
 
 // TETRIS_GRID CLASS ==========================================================
 
+int GRID_HEIGHT = 20;
+int GRID_LENGTH = 10;
+int GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
+
 class tetris_grid {
     private:
+        unsigned int generator_seed;
     public:
     block* curr_block;
     block* next_block;
     const int* rotation_offset;
-    block tetris_blocks[7] 
+    std::vector<int> grid;
+    block tetris_blocks[7] = 
     {
         block(L_BLOCK),
         block(J_BLOCK),
@@ -102,7 +108,7 @@ class tetris_grid {
 
     tetris_grid();
     void placeBlock();
-    void printGrid();
+    void printGrid(WINDOW*);
     void rotateR(block*, const int* &);
     void rotateL(block*, const int* &);
     void generateNextBlock();
