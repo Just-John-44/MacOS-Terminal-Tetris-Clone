@@ -3,8 +3,8 @@
 #define _BLOCKS_H
 
 #include <ncurses.h>
-#include <random>
 #include <ctime>
+#include <vector>
 
 // DATA =======================================================================
 
@@ -18,51 +18,67 @@ enum block_type {
     O_BLOCK
 };
 
+enum direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
+
+
+// The following block rotations follow the NES tetris rules.
 const int L_BLOCK_ARR[36] = 
 {
-    0, 0, 1,  0, 1, 0,  0, 0, 0,  1, 1, 0,  // [ ]
-    1, 1, 1,  0, 1, 0,  1, 1, 1,  0, 1, 0,  // [ ]		[ ][_][_]
-    0, 0, 0,  0, 1, 1,  1, 0, 0,  0, 1, 0   // [_][_]	[_]
+    0, 0, 1,  0, 1, 0,  0, 0, 0,  2, 1, 0,  // [ ]
+    2, 2, 2,  0, 1, 0,  1, 2, 2,  0, 1, 0,  // [ ]		[ ][_][_]
+    0, 0, 0,  0, 2, 2,  2, 0, 0,  0, 2, 0   // [_][_]	[_]
 };
 const int J_BLOCK_ARR[36] = 
 {
-    1, 0, 0,  0, 1, 1,  0, 0, 0,  0, 1, 0,  // [ ][ ]
-    1, 1, 1,  0, 1, 0,  1, 1, 1,  0, 1, 0,  // [ ]		[_][_][ ]
-    0, 0, 0,  0, 1, 0,  0, 0, 1,  1, 1, 0   // [_]   	      [_]
+    1, 0, 0,  0, 1, 2,  0, 0, 0,  0, 1, 0,  // [ ][ ]
+    2, 2, 2,  0, 1, 0,  2, 2, 1,  0, 1, 0,  // [ ]		[_][_][ ]
+    0, 0, 0,  0, 2, 0,  0, 0, 2,  2, 2, 0   // [_]   	      [_]
 };
 const int T_BLOCK_ARR[36] = 
 {
     0, 1, 0,  0, 1, 0,  0, 0, 0,  0, 1, 0,  // [ ]		
-    1, 1, 1,  0, 1, 1,  1, 1, 1,  1, 1, 0,  // [ ][_]	   [ ]
-    0, 0, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0   // [_]		[_][_][_]
+    2, 2, 2,  0, 1, 2,  2, 1, 2,  2, 1, 0,  // [ ][_]	   [ ]
+    0, 0, 0,  0, 2, 0,  0, 2, 0,  0, 2, 0   // [_]		[_][_][_]
 };
 const int I_BLOCK_ARR[64] = 
-{
-    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0,  // [ ]	
-    1, 1, 1, 1,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0,  // [ ]	
-    0, 0, 0, 0,  0, 0, 1, 0,  1, 1, 1, 1,  0, 1, 0, 0,  // [ ]	
-    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 1, 0, 0   // [_]	[_][_][_][_]
+{ 
+    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 0, 1, 0,  // [ ]	
+    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 0, 1, 0,  // [ ]	
+    2, 2, 2, 2,  0, 0, 1, 0,  2, 2, 2, 2,  0, 0, 1, 0,  // [ ]	
+    0, 0, 0, 0,  0, 0, 2, 0,  0, 0, 0, 0,  0, 0, 2, 0   // [_]	[_][_][_][_]
 }; 
 const int S_BLOCK_ARR[36] = 
 {
-    0, 1, 1,  0, 1, 0,  0, 0, 0,  1, 0, 0,  // [ ]		
-    1, 1, 0,  0, 1, 1,  0, 1, 1,  1, 1, 0,  // [_][ ]	   [ ][_]
-    0, 0, 0,  0, 0, 1,  1, 1, 0,  0, 1, 0   //    [_]	[_][_]	
+    0, 0, 0,  0, 1, 0,  0, 0, 0,  0, 1, 0,  // [ ]		
+    0, 1, 2,  0, 2, 1,  0, 1, 2,  0, 2, 1,  // [_][ ]	   [ ][_]
+    2, 2, 0,  0, 0, 2,  2, 2, 0,  0, 0, 2   //    [_]	[_][_]	
 };
 const int Z_BLOCK_ARR[36] = 
 {
-    1, 1, 0,  0, 0, 1,  0, 0, 0,  0, 1, 0,  //    [ ]	
-    0, 1, 1,  0, 1, 1,  1, 1, 0,  1, 1, 0,  // [ ][_]	[_][ ]
-    0, 0, 0,  0, 1, 0,  0, 1, 1,  1, 0, 0   // [_]	 	   [_][_]
+    0, 0, 0,  0, 0, 1,  0, 0, 0,  0, 0, 1,  //    [ ]	
+    2, 1, 0,  0, 1, 2,  2, 1, 0,  0, 1, 2,  // [ ][_]	[_][ ]
+    0, 2, 2,  0, 2, 0,  0, 2, 2,  0, 2, 0,  // [_]	 	   [_][_]
 };
-const int O_BLOCK_ARR[9] = 
+const int O_BLOCK_ARR[36] = 
 {
-    1, 1, 0,    // [ ][ ]	[ ][ ]  // The O block doesnt change when rotated,
-    1, 1, 0,    // [_][_]	[_][_]  // so there is no need to have multiple 
-    0, 0, 0     //                  // rotations stored.
+    0, 1, 1,  0, 1, 1,  0, 1, 1,  0, 1, 1,  // [ ][ ]	[ ][ ] 
+    0, 2, 2,  0, 2, 2,  0, 2, 2,  0, 2, 2,  // [_][_]	[_][_] 
+    0, 0, 0,  0, 0, 0,  0, 0, 0,  0, 0, 0,  //                
 };
 
 const int POSSIBLE_ROTATIONS = 4; // This doesn't apply to the O_BLOCK
+
+// ============================================================================
+
+inline void tetris_init(){
+    unsigned int generator_seed = time(0);
+    srand(generator_seed);
+}
 
 // BLOCK CLASS ================================================================
 
@@ -83,18 +99,33 @@ class block {
 
 // TETRIS_GRID CLASS ==========================================================
 
-int GRID_HEIGHT = 20;
-int GRID_LENGTH = 10;
-int GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
-
 class tetris_grid {
-    private:
-        unsigned int generator_seed;
-    public:
+public:
+    bool canShiftUp(const int*, int);
+    bool canShiftDown(const int*, int);
+    bool canShiftLeft(const int*, int);
+    bool canShiftRight(const int*, int);
+
     block* curr_block;
     block* next_block;
     const int* rotation_offset;
+    int highest_square_offset;
+    int lowest_square_offset;
+    int leftmost_square_offset;
+    int rightmost_square_offset;
     std::vector<int> grid;
+    // This is the index at the bottom left of the block thats in the grid
+    // int grid_block_location;
+    
+    int grid_search;        
+    int l_collisions,       
+        r_collisions,       
+        t_collisions,       
+        b_collisions,       
+        c_collision_y,      
+        c_collision_x;      
+    bool c_collision;       
+    
     block tetris_blocks[7] = 
     {
         block(L_BLOCK),
@@ -107,11 +138,24 @@ class tetris_grid {
     };
 
     tetris_grid();
-    void placeBlock();
+    void printInfo(WINDOW*);
+    void gridMoveCursor(WINDOW*, int, int);
     void printGrid(WINDOW*);
-    void rotateR(block*, const int* &);
-    void rotateL(block*, const int* &);
+    bool canRotate(const int*);
+    void rotateR();
+    void rotateL();
     void generateNextBlock();
+    void calcTopandBottomSquare(const int*);
+    void calcLeftandRightSquare(const int*);
+    void setCurrBlockOnGrid();
+    
+    void shiftBlock(int, direction);
+    // void shiftDown(int);
+    // void shiftLeft(int);
+    // void shiftRight(int);
+    void settleCurrBlock(); 
+
+private:
 };
 
 #endif
