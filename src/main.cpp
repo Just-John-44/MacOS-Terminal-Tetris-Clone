@@ -1,10 +1,8 @@
 // Author: John Wesley Thompson
-// Creation Date: 8/10/2023
-// Last Edited:
+// Creation Date: 8/10/2024
 // Completed:
+// Last Edited:
 // main.cpp
-
-// "/Users/jwt44/Documents/Music/Media.localized/Boston/Boston/Peace\\ Of\\ Mind.wav";
 
 // This program is my best shot at copying tetris in the console.
 
@@ -13,17 +11,79 @@
 #endif
 #define MINIAUDIO_IMPLEMENTATION
 #include "minaudio.h"
-
+// #include "tetris.h"
 #include <stdio.h>
 #include <iostream>
 #include <thread>
+#include <vector>
 
 // line 1730 - handling multpile 'sounds'
 // line 2546 - looping?
-
-void initGame();
+int musicstuff();
 
 int main(){
+    
+    musicstuff();
+
+    return 0;
+
+}
+
+// This function is retrieves info from a sound file decoder and is used to
+// give that info to the playback device object.
+void dataCallback(ma_device* pDevice, void* pOutput, 
+                  const void* pInput, ma_uint32 frame_count){
+
+    ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
+    if (pDecoder == NULL) {
+        return;
+    }
+
+    ma_result result = ma_data_source_read_pcm_frames(pDecoder, pOutput, 
+                                                      frame_count, nullptr);
+
+    (void)pInput;
+}
+
+
+// void processInput(){
+//     int in;
+//     keypad(win, true);
+//     while(1){
+//         in = getch();
+
+//         switch(in){
+//             //quit game
+//             case 'q':
+//                 exit(0);
+//             //movement
+//             case 'a':
+//                 tetris.rotateL();
+//                 tetris.printGrid(win);
+//                 tetris.printInfo(win);
+//                 break;
+
+//             case 'd':
+//                 tetris.rotateR();
+//                 tetris.printGrid(win);
+//                 tetris.printInfo(win);
+//                 break;
+
+//             case 's':
+//                 tetris.shiftDown();
+//                 tetris.printGrid(win);
+//                 tetris.printInfo(win);
+//                 break;
+                
+//             //open menu
+//             //play/pause game
+
+
+//         }
+//     }
+// }
+
+int musicstuff(){
     
     ma_result result;
 
@@ -67,26 +127,6 @@ int main(){
     ma_device_uninit(&device);
 }
 
-// This function is retrieves info from a sound file decoder and is used to
-// give that info to the playback device object.
-void dataCallback(ma_device* pDevice, void* pOutput, 
-                  const void* pInput, ma_uint32 frame_count){
-
-    ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
-    if (pDecoder == NULL) {
-        return;
-    }
-
-    ma_result result = ma_data_source_read_pcm_frames(pDecoder, pOutput, 
-                                                      frame_count, nullptr);
-
-    (void)pInput;
-}
-
-
-void initGame(){
-
-}
 // std::cout << "pausing in 3\n";
     // std::this_thread::sleep_for(std::chrono::seconds(1));
 
