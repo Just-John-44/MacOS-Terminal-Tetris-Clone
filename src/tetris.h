@@ -1,10 +1,17 @@
+// John Wesley Thompson
+// Created: 8/10/2024
+// Completed:
+// Last Edited: 10/17/2024
 // tetris.h
+
 #ifndef _TETROMINOS_H
 #define _TETROMINOS_H
 
 #include <ncurses.h>
 #include <ctime>
 #include <vector>
+#include "tetris_stack.h"
+#include "tetris_tetromino.h"
 
 // DATA =======================================================================
 
@@ -12,15 +19,7 @@
 #define COLOR_PURPLE 8  // All other colors used are defined in the ncurses 
 #define COLOR_ORANGE 9  // header file.
 
-enum tetromino_type {
-    L_TETROMINO = 1,
-    J_TETROMINO,
-    T_TETROMINO,
-    I_TETROMINO,
-    S_TETROMINO,
-    Z_TETROMINO,
-    O_TETROMINO
-};
+
 
 enum direction {
     UP,
@@ -31,7 +30,9 @@ enum direction {
     CCWISE
 };
 
-enum tetromino_color_id{
+#ifndef ENUM_COLOR_ID
+#define ENUM_COLOR_ID
+enum color_id{
     STANDARD = 1,
     ORANGE,
     BLUE,
@@ -41,53 +42,7 @@ enum tetromino_color_id{
     RED,
     YELLOW
 };
-
-// The following tetromino rotations follow the NES tetris rules.
-const int L_TETROMINO_ARR[36] = 
-{
-    0, 0, 1,  0, 1, 0,  0, 0, 0,  2, 1, 0,  // [ ]
-    2, 2, 2,  0, 1, 0,  1, 2, 2,  0, 1, 0,  // [ ]		[ ][_][_]
-    0, 0, 0,  0, 2, 2,  2, 0, 0,  0, 2, 0   // [_][_]	[_]
-};
-const int J_TETROMINO_ARR[36] = 
-{
-    1, 0, 0,  0, 1, 2,  0, 0, 0,  0, 1, 0,  // [ ][ ]
-    2, 2, 2,  0, 1, 0,  2, 2, 1,  0, 1, 0,  // [ ]		[_][_][ ]
-    0, 0, 0,  0, 2, 0,  0, 0, 2,  2, 2, 0   // [_]   	      [_]
-};
-const int T_TETROMINO_ARR[36] = 
-{
-    0, 1, 0,  0, 1, 0,  0, 0, 0,  0, 1, 0,  // [ ]		
-    2, 2, 2,  0, 1, 2,  2, 1, 2,  2, 1, 0,  // [ ][_]	   [ ]
-    0, 0, 0,  0, 2, 0,  0, 2, 0,  0, 2, 0   // [_]		[_][_][_]
-};
-const int I_TETROMINO_ARR[64] = 
-{ 
-    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 0, 1, 0,  // [ ]	
-    0, 0, 0, 0,  0, 0, 1, 0,  0, 0, 0, 0,  0, 0, 1, 0,  // [ ]	
-    2, 2, 2, 2,  0, 0, 1, 0,  2, 2, 2, 2,  0, 0, 1, 0,  // [ ]	[_][_][_][_]
-    0, 0, 0, 0,  0, 0, 2, 0,  0, 0, 0, 0,  0, 0, 2, 0   // [_]	
-}; 
-const int S_TETROMINO_ARR[36] = 
-{
-    0, 0, 0,  0, 1, 0,  0, 0, 0,  0, 1, 0,  // [ ]		
-    0, 1, 2,  0, 2, 1,  0, 1, 2,  0, 2, 1,  // [_][ ]	   [ ][_]
-    2, 2, 0,  0, 0, 2,  2, 2, 0,  0, 0, 2   //    [_]	[_][_]	
-};
-const int Z_TETROMINO_ARR[36] = 
-{
-    0, 0, 0,  0, 0, 1,  0, 0, 0,  0, 0, 1,  //    [ ]	
-    2, 1, 0,  0, 1, 2,  2, 1, 0,  0, 1, 2,  // [ ][_]	[_][ ]
-    0, 2, 2,  0, 2, 0,  0, 2, 2,  0, 2, 0,  // [_]	 	   [_][_]
-};
-const int O_TETROMINO_ARR[36] = 
-{
-    0, 1, 1,  0, 1, 1,  0, 1, 1,  0, 1, 1,  // [ ][ ]	[ ][ ] 
-    0, 2, 2,  0, 2, 2,  0, 2, 2,  0, 2, 2,  // [_][_]	[_][_] 
-    0, 0, 0,  0, 0, 0,  0, 0, 0,  0, 0, 0,  //                
-};
-
-const int POSSIBLE_ROTATIONS = 4; // This doesn't apply to the O_TETROMINO
+#endif
 
 // ============================================================================
 
@@ -120,51 +75,28 @@ inline void tetris_init(){
     }
 }
 
-// TETROMINO CLASS ================================================================
-
-class tetromino {
-    private:
-
-    int m_color_id;
-    int m_shape_stride; // the distance from one rotation to another in the tetromino shape array
-    const int* m_shape_arr_ptr; // the tetromino's shape array
-
-    public:
-
-    tetromino(tetromino_type);
-    const int* shapeArray();
-    int shapeStride();
-    int color();
-};
-
 // TETRIS_GRID CLASS ==========================================================
 
 class tetris_grid {
 public:
-    bool canShiftUp(const int*, int);
-    bool canShiftDown(const int*, int);
-    bool canShiftLeft(const int*, int);
-    bool canShiftRight(const int*, int);
 
-    tetromino* curr_tetromino;
-    tetromino* next_tetromino;
-    const int* m_rotation_offset;
-    int highest_square_offset;
-    int lowest_square_offset;
+    tetromino curr_tetromino;
+    tetromino next_tetromino;
+    const int* m_curr_rotation_offset;
+    const int* m_curr_arr_start;
+    int m_curr_shape_stride;
+    int m_curr_shape_arr_len;
+    int topmost_square_offset;
+    int bottommost_square_offset;
     int leftmost_square_offset;
     int rightmost_square_offset;
-    std::vector<int> grid;
+    std::vector<std::vector<square> > grid;
     // This is the index at the bottom left of the tetromino thats in the grid
     // int grid_tetromino_location
     
-    int grid_pos;        
-    int l_collisions,       
-        r_collisions,       
-        t_collisions,       
-        b_collisions,       
-        c_collision_y,      
-        c_collision_x;      
-    bool c_collision;       
+    // int grid_pos;     
+    int tet_y_pos,
+        tet_x_pos;     
     
     tetromino tetris_tetrominoes[7] = 
     {
@@ -183,15 +115,24 @@ public:
     void refreshTetromino(WINDOW*);
     void rotateTetromino(direction);
     void generateNextTetromino();
-    void calcTopandBottomSquare(const int*);
-    void calcLeftandRightSquare(const int*);
     void setCurrTetrominoOnGrid();
-    void shiftTetromino(int, direction);
-    void settleCurrTetromino(); 
+    void shiftTetromino(int, direction); 
+
+    bool stackRowFull(int);
+    void stackWipeCompleteRows(WINDOW*);
+    void stackRowsShift(WINDOW*);
+
 
 private:
+    void setCurrTetrominoData();
+    bool inBounds(int, int);
     void gridMoveCursor(WINDOW*, int, int);
-    bool canRotate(const int*);
+    void blindShiftTetromino(const int*, int, direction);
+    bool canRotate(direction);
+    bool canShiftUp(int);
+    bool canShiftDown(int);
+    bool canShiftLeft(int);
+    bool canShiftRight(int);
 };
 
 #endif

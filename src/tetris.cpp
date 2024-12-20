@@ -1,7 +1,7 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last Edited: 
+// Last Edited: 10/17/2024
 // tetris.cpp
 
 // This file includes all of the implentation for the tetromino class and
@@ -11,98 +11,33 @@
 #include "tetris.h"
 
 
+// TO DO: tetris init should create the window that it's displayed in as well.
 // TO DO: import the random library for better tetromino generation
 // TO DO: improve the refreshTetromino function's speed
 // TO DO: create a row clear function and a row check function
 // TO DO: create a game over function called topReached()
 // TO DO: make the place tetromino on grid function return false or -1 if 
 //        a block could not be placed.
-// TO DO: rename varables to more intuitive names and call the stack the stack
-//        and tetrominoes tetrominoes
-// TO DO: create a tetris settings class or strucct that has al of the tetris
+// TO DO: create a tetris settings class or struct that has al of the tetris
 //        setting data as wella s getters and setters
 // TO DO: move all of the functions that would be more intuitive in the tetromino
 //        class from the tetris grid class and into the tetromino class
 // TO DO: prefix the variables in the tetris_grid class with m
 // TO DO: make appropriate functions pass by reference and const
-// TO DO: add a boolean variable to tetris.h that tells if the terminal can
-//        print in color so that print functions can use it to print 
-//        appropriately
-// TO DO: make macros or an enum for the different grid values.
 // TO DO: get rid of error checking in the rotate and shift functions that
 //        are already included in the movement validation functions
 // TO DO: rename grid_pos to tet_pos
-
-// ============================================================================
-// tetromino CLASS 
-// ============================================================================
-
-tetromino::tetromino(tetromino_type tet_t){
-
-    switch(tet_t){
-        case L_TETROMINO:   
-            m_shape_arr_ptr = L_TETROMINO_ARR;
-            m_shape_stride = 3;
-
-            m_color_id = ORANGE;
-            break;
-
-        case J_TETROMINO: 
-            m_shape_arr_ptr = J_TETROMINO_ARR;
-            m_shape_stride = 3;
-            
-            m_color_id = BLUE;
-            break;
-
-        case T_TETROMINO: 
-            m_shape_arr_ptr = T_TETROMINO_ARR;
-            m_shape_stride = 3;
-            
-            m_color_id = PURPLE;
-            break;
-
-        case I_TETROMINO: 
-            m_shape_arr_ptr = I_TETROMINO_ARR;
-            m_shape_stride = 4;
-
-            m_color_id = CYAN;
-            break;
-
-        case S_TETROMINO: 
-            m_shape_arr_ptr = S_TETROMINO_ARR;
-            m_shape_stride = 3;
-
-            m_color_id = GREEN;
-            break;
-
-        case Z_TETROMINO: 
-            m_shape_arr_ptr = Z_TETROMINO_ARR;
-            m_shape_stride = 3;
-
-            m_color_id = RED;
-            break;
-
-        case O_TETROMINO: 
-            m_shape_arr_ptr = O_TETROMINO_ARR;
-            m_shape_stride = 3;
-            
-            m_color_id = YELLOW;
-            break;
-    }
-}
-
-// This function returns the address of the m_shape_arr_ptr
-const int* tetromino::shapeArray(){
-    return m_shape_arr_ptr;
-}
-
-int tetromino::shapeStride(){
-    return m_shape_stride;
-}
-
-int tetromino::color(){
-    return m_color_id;
-}
+// TO DO: make array start, shapestride, and shape arr length member variables.
+// TO DO: make the terminal print in only black and white if it doesn't support colors.
+// TO DO: maybe code would be simplified if i made curr block a tetromino variable and
+//        set it equal to the next block each time. maybe it would run faster because I
+//        wouldn't have to dereference the pointer each time i want info.
+// TO DO: I should probably make the tetromino arrays square types instead of ints
+// TO DO: calc left and right should take arguments in as parameters instead of direcetly
+//        modifying the tetris struct's data. Also, it makes more sense for these to be
+//        on the tetromino class.
+// TO DO: make a set curr block data function that gathers all of the information about
+//        the current block so it can be used instead fo crowding other function's code     
 
 // ============================================================================
 // TETRIS_GRID CLASS 
@@ -111,69 +46,54 @@ int tetromino::color(){
 int out_of_bounds_buffer = 2;
 
 int GRID_HEIGHT = 20;
-int GRID_LENGTH = 10 + out_of_bounds_buffer * 2;
+int GRID_LENGTH = 10;
 int GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
-
-int LEFT_WALL_X = 1;
-int RIGHT_WALL_X = GRID_LENGTH - 2;
 
 tetris_grid::tetris_grid(){
 
-    int curr_tetromino_index = rand() % 7; // if it is assigned here it's always 2 for some reason.
-    curr_tetromino_index = rand() % 7;
-    int next_tetromino_index = rand() % 7;
+    curr_tetromino = tetris_tetrominoes[rand() % 7];
+    next_tetromino = tetris_tetrominoes[rand() % 7];
 
-    mvprintw(30, 0, "curr_tetromino_index %i: ", curr_tetromino_index);
-    mvprintw(31, 0, "next_tetromino_index %i: ", next_tetromino_index);
+    setCurrTetrominoData();
 
-    curr_tetromino = &tetris_tetrominoes[curr_tetromino_index];
-    next_tetromino = &tetris_tetrominoes[next_tetromino_index];
-    m_rotation_offset = curr_tetromino->shapeArray();
+    // set non garbage values for the position of the tetromino on the grid
+    tet_y_pos = tet_x_pos = 0;
 
-    grid.resize(GRID_HEIGHT * GRID_LENGTH);
-
-    grid_pos = 0;
-
-    for (int i = 0; i < GRID_SIZE; i++){
-        if (i % GRID_LENGTH == LEFT_WALL_X ||
-            i % GRID_LENGTH == RIGHT_WALL_X)
-        {
-            grid.at(i) = -2;
-        }
+    // This resizes the grid to the default values: a height of 20 and
+    // a length of 10.
+    grid.resize(GRID_HEIGHT);
+    for (int i = 0; i < GRID_HEIGHT; i++){
+        grid.at(i).resize(GRID_LENGTH);
     }
-
 }
 
-#ifdef DEBUG
 void tetris_grid::printInfo(WINDOW* win){
 
-    int c_stride = curr_tetromino->shapeStride();
-    const int* c_arr_start = curr_tetromino->shapeArray();
-    // const int* n_arr_start = next_tetromino->shapeArray();
-
     int y, x;
-    y = x = 30;
+    
+    y = 30;
+    wmove(win, y, 0);
+    wclrtoeol(win);
+    wprintw(win, "tet_y: %i", tet_y_pos);
+    wmove(win, y += 2, 0);
+    wclrtoeol(win);
+    wprintw(win, "tet_x: %i", tet_x_pos);
+    wmove(win, y += 2, 0);
+
+    y = 30;
+    x = 30;
     wmove(win, y, x);
-
-    for (int i = 0; i < c_stride; i++){
-        for (int j = 0; j < c_stride; j++){
-            wprintw(win, "%i ", *(m_rotation_offset + j + (i * c_stride * POSSIBLE_ROTATIONS)));
-        }
-        wmove(win, ++y, x);
-    }
-
-    wmove(win, y += 2, x);
     wclrtoeol(win);
-    wprintw(win, "c_arr_s: %i", c_arr_start);
+    wprintw(win, "c_arr_s: %x", m_curr_arr_start);
     wmove(win, ++y, x);
     wclrtoeol(win);
-    wprintw(win, "r_o:     %i", m_rotation_offset);
+    wprintw(win, "r_o:     %x", m_curr_rotation_offset);
     wmove(win, y += 2, x);
     wclrtoeol(win);
-    wprintw(win, "c_highest: %i", highest_square_offset);
+    wprintw(win, "c_highest: %i", topmost_square_offset);
     wmove(win, ++y, x);
     wclrtoeol(win);
-    wprintw(win, "c_lowest:  %i", lowest_square_offset);
+    wprintw(win, "c_lowest:  %i", bottommost_square_offset);
     wmove(win, ++y, x);
     wclrtoeol(win);
     wprintw(win, "c_leftmost:  %i", leftmost_square_offset);
@@ -182,46 +102,59 @@ void tetris_grid::printInfo(WINDOW* win){
     wprintw(win, "c_rightmost:  %i", rightmost_square_offset);
     wmove(win, ++y, x);
     wclrtoeol(win);
-    wprintw(win, "c_lowest - 12: %i", lowest_square_offset - 12);
+    wprintw(win, "c_lowest - 12: %i", bottommost_square_offset - 12);
     wmove(win, ++y, x);
     wclrtoeol(win);
-    wprintw(win, "c_lowest - 24: %i", lowest_square_offset - 24);
+    wprintw(win, "c_lowest - 24: %i", bottommost_square_offset - 24);
     wmove(win, y += 2, x);
     wclrtoeol(win);
     wprintw(win, "gbl: %i", 0); // not used anymore
-    
-    int y2 = 30;
-    wclrtoeol(win);
-    wprintw(win, "gsch: %i", grid_pos);
-    wmove(win, y2 += 2, 0);
-    wprintw(win, "lc: %i   ", l_collisions);
-    wmove(win, ++y2, 0);
-    wprintw(win, "rc: %i   ", r_collisions);
-    wmove(win, ++y2, 0);
-    wprintw(win, "tc: %i   ", t_collisions);
-    wmove(win, ++y2, 0);
-    wprintw(win, "bc: %i   ", b_collisions);
-    wmove(win, ++y2, 0);
-    wprintw(win, "cc: %i", c_collision);
-    wmove(win, ++y2, 0);
-    wprintw(win, "ccy: %i   ", c_collision_y); 
-    wmove(win, ++y2, 0);
-    wprintw(win, "ccx: %i   ", c_collision_x);
-    
 
+    y = 30;
+    x = 50;
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    const int* arr_ptr = O_TETROMINO_ARR;
+    wprintw(win, "O_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = J_TETROMINO_ARR;
+    wprintw(win, "J_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = I_TETROMINO_ARR;
+    wprintw(win, "I_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = S_TETROMINO_ARR;
+    wprintw(win, "S_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = Z_TETROMINO_ARR;
+    wprintw(win, "Z_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = L_TETROMINO_ARR;
+    wprintw(win, "L_arr_s: %x", arr_ptr);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    arr_ptr = T_TETROMINO_ARR;
+    wprintw(win, "T_arr_s: %x", arr_ptr);
+
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    wprintw(win, "test t tet: %i, %i, %i", T_TETROMINO_ARR[0], T_TETROMINO_ARR[1], T_TETROMINO_ARR[2]);
+    wmove(win, y ++, x);
+    wclrtoeol(win);
+    wprintw(win, "test arr ptr: %i, %i, %i", *(arr_ptr), *(arr_ptr + 1), *(arr_ptr + 2));
+    
 
     wrefresh(win);
 }
-#endif
 
 // TERMINAL OUTPUT ============================================================
 
-void tetris_grid::gridMoveCursor(WINDOW* grid_win, int y, int x){
-    wmove(grid_win, y, x * 3);
-}
-
-// TO DO: make tetrominoes print in color and only print the grid indices that are 
-//        within bounds.
+// TO DO: only print the grid indices that are within bounds.
 void tetris_grid::printGrid(WINDOW* grid_win){
     int win_height, win_length;
     getmaxyx(grid_win, win_height, win_length);
@@ -232,21 +165,21 @@ void tetris_grid::printGrid(WINDOW* grid_win){
     
     wmove(grid_win, 1, 1);
     for (int i = 0; i < GRID_HEIGHT; i++){  
-        for (int j = 0; j < GRID_LENGTH; j++){     
-            if (grid.at(j + i * GRID_LENGTH) == 1){
-                wprintw(grid_win, "[ ]");
-            } else if (grid.at(j + i * GRID_LENGTH) == 2){
-                wprintw(grid_win, "[_]");
-            } else if (grid.at(j + i * GRID_LENGTH) == -1){ // This code won't be useful 
-                wprintw(grid_win, "[X]");                   // when i create a refresh
-            } else if (grid.at(j + i * GRID_LENGTH) == -2){
-                wprintw(grid_win, "[X]");
-            } else if (grid.at(j + i * GRID_LENGTH) == 3){
-                wprintw(grid_win, "[3]");
-            } else {                                        // function because -1s won't
-                wprintw(grid_win, "   ");                   // need to be reprinted.
+        for (int j = 0; j < GRID_LENGTH; j++){    
+
+            if (grid.at(i).at(j).s_type == EMPTY_SQR){
+                wprintw(grid_win, "   ");   
+                continue;
             }
-            // wprintw(grid_win, " %i ", grid.at(j + i * GRID_LENGTH));
+
+            wattron(grid_win, COLOR_PAIR(grid.at(i).at(j).s_color));
+            if (grid.at(i).at(j).s_type == TOP_SQR){  
+                wprintw(grid_win, "[ ]");
+            } else if (grid.at(i).at(j).s_type == BOTTOM_SQR){                                      
+                wprintw(grid_win, "[_]");
+            }
+            //wprintw(grid_win, " (%2i, %i)", grid.at(i).at(j).s_type, grid.at(i).at(j).s_color);
+            wattroff(grid_win, COLOR_PAIR(grid.at(i).at(j).s_color));
         }
         wmove(grid_win, i + 2, 1);
     }
@@ -265,76 +198,44 @@ void tetris_grid::printGrid(WINDOW* grid_win){
 
 // This function only reprints the current tetromino
 void tetris_grid::refreshTetromino(WINDOW* grid_win){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
 
-    // This is the index of where a refresh will start on the grid. It starts
-    // above the tetromino and scans the area arounf it for trail values.
-    int refresh_idx;
-    
-    // I don't want to go into depth about how this math works because it's
-    // annoying and confusing, but it calculates the individual x and y
-    // positions of refresh idx as if it was in a 2D array. These values are
-    // later used for positioning the window cursor for reprinting.
+    int refresh_idx_y = tet_y_pos - 2;
+    int refresh_idx_x = tet_x_pos - 2;
 
-    int refresh_idx_y, refresh_idx_x;
-    int grid_pos_x, grid_pos_y;
-    int refresh_area_height; // + 2 to the top and the bottom
-    int refresh_area_width; 
-    int x_dif; // This is the difference between the x values of grid_pos and 
-               // refresh index.
-
-    if (grid_pos >= 0)
-        grid_pos_x = grid_pos % GRID_LENGTH;
-    else 
-        grid_pos_x = GRID_LENGTH + grid_pos % GRID_LENGTH;
-
-    grid_pos_y = (grid_pos - grid_pos_x) / GRID_LENGTH;
-
-    if (grid_pos_x < LEFT_WALL_X)
-        refresh_idx_x = 0;
-    else
-        refresh_idx_x = grid_pos_x - 2;
-
-    refresh_idx_y = grid_pos_y - 2;
-    x_dif = grid_pos_x - refresh_idx_x;
-    
-
-    refresh_idx = refresh_idx_x + refresh_idx_y * GRID_LENGTH;
-
-    refresh_area_height = shape_stride + 4;
-    refresh_area_width = shape_stride + x_dif + 2;
+    int refresh_area_height = m_curr_shape_stride + 4; // +2 on all sides of shape array
+    int refresh_area_width = m_curr_shape_stride + 4;  //
 
     for (int i = 0; i < refresh_area_height; i++){
         for (int j = 0; j < refresh_area_width; j++){
-            if (refresh_idx + j + i * GRID_LENGTH < 0 ||
-                refresh_idx + j + i * GRID_LENGTH >= GRID_SIZE)
-            {
+
+            if (!inBounds(refresh_idx_y + i, refresh_idx_x + j)){
                 continue;
             } 
             
             // 3 is the width of each printed square, and 1 is added to offset
             // from the border of the ncurses window
             wmove(grid_win, refresh_idx_y + i + 1, (refresh_idx_x + j) * 3 + 1);
-            wattron(grid_win, COLOR_PAIR(curr_tetromino->color()));
+            wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
 
-            if (grid.at(refresh_idx + j + i * GRID_LENGTH) == 1 &&
-                j >= x_dif && j < x_dif + shape_stride && i >= 2 && i < 2 + shape_stride &&
-                *(m_rotation_offset + (j - x_dif) + (i - 2) * shape_arr_length) == 1)
-            {
+            if (grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_type == TOP_SQR){
+
+                //wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
                 wprintw(grid_win, "[ ]");
+                //wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
 
-            } else if (grid.at(refresh_idx + j + i * GRID_LENGTH) == 2 &&
-                       j >= x_dif && j < x_dif + shape_stride && i >= 2 && i < 2 + shape_stride &&
-                       *(m_rotation_offset + (j - x_dif) + (i - 2) * shape_arr_length) == 2)
-            {
+
+            } else if (grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_type == BOTTOM_SQR){
+
+                //wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
                 wprintw(grid_win, "[_]");
+                //wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
 
-            } else if (grid.at(refresh_idx + j + i * GRID_LENGTH) == 3){
+
+            } else {
                 wprintw(grid_win, "   ");
             } 
 
-            wattroff(grid_win, COLOR_PAIR(curr_tetromino->color()));
+            wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
             wrefresh(grid_win);
         }
     }
@@ -342,294 +243,282 @@ void tetris_grid::refreshTetromino(WINDOW* grid_win){
 
 // TETRIS STACK MANIPULATION ==================================================
 
-int stackRemoveRow(){
+void tetris_grid::stackWipeCompleteRows(WINDOW* grid_win){ 
+    bool row_full;
+    for (int i = 0; i < GRID_HEIGHT; i++){
 
-    // iterate through all rows from the bottom to the top and count how many are complete and gayher their y values
-    // shift every square above the 
+        row_full = true;
+        for (int j = 0; j < GRID_LENGTH; j++){
+            if (grid.at(i).at(j).s_type == EMPTY_SQR){
+                row_full = false;
+                break;
+            }
+        }
+
+        if (!row_full)
+            continue;
+
+        // If the row is full, wipe it.
+        for (int j = 0; j < GRID_LENGTH; j++){
+            grid.at(i).at(j).setEmpty();
+        }
+    }
+}
+
+void tetris_grid::stackRowsShift(WINDOW* grid_win){
+    bool unempty_row_arr[GRID_HEIGHT];
+    int unempty_row_count = 0;
+
+    bool row_empty;
+    int lowest_empty_row_idx = 0;
+    for (int i = 0; i < GRID_HEIGHT; i++){
+        row_empty = true;
+        for (int j = 0; j < GRID_LENGTH; j++){
+            if (grid.at(i).at(j).s_type != EMPTY_SQR){
+                row_empty = false;
+                break;
+            }
+        }
+
+        if (row_empty){
+            lowest_empty_row_idx = i;
+            unempty_row_arr[i] = 0;
+            
+        } else {
+            unempty_row_arr[i] = 1;
+            unempty_row_count++;
+        }
+    }
 
 
+    bool floating = false;
+    for (int i = GRID_HEIGHT - 1; i >= 0; i--){
+        if (unempty_row_arr[i] == 0){
+            floating = true;
 
+        } else if (unempty_row_arr[i] == 1 && floating){
+            for (int j = 0; j < GRID_LENGTH; j++){
+                grid.at(lowest_empty_row_idx).at(j).s_color = grid.at(i).at(j).s_color;
+                grid.at(lowest_empty_row_idx).at(j).s_type = grid.at(i).at(j).s_type;
+                grid.at(i).at(j).setEmpty();
+            }
+            unempty_row_count--;
+            lowest_empty_row_idx--; // decrement becuase lower indices are higher
+                                    // on the grid. 
+
+        } else if (unempty_row_arr[i] == 1){ // && !floating
+            unempty_row_count--;
+        }
+
+        if (unempty_row_count == 0)
+            break;
+    }
 }
 
 // MOVEMENT AND MOVEMENT VALIDATION ===========================================
 
-// TO DO: simplify this monstrosity
-bool tetris_grid::canRotate(const int* test_rotation_offset){
-
-    int shape_stride = curr_tetromino->shapeStride();
-
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    calcLeftandRightSquare(test_rotation_offset);   // These are used to find out THESE NEED TO BE RESET IF THE FUNCTION RETURNS FALSE
-    calcTopandBottomSquare(test_rotation_offset);   // if any edges of the shape
-                                                    // are colliding or out of 
-                                                    // bounds.
-
-    c_collision = false;    // This info is used later to find which  
-    c_collision_x = 0;      // way the tetromino should shift if there is 
-    c_collision_y = 0;      // only a center collision.
-
-    l_collisions = 0;       // This info is used to determine where the 
-    r_collisions = 0;       // tetromino is colliding and to determine which
-    t_collisions = 0;       // way the tetromino will shift.
-    b_collisions = 0;       // 
-
+bool tetris_grid::canRotate(direction dir){
     
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
+    if (m_curr_arr_start == O_TETROMINO_ARR){ // O tetromino doesn't rotate
+        return false;
+    }
 
-            if (*(test_rotation_offset + j + i * shape_arr_length) <= 0)
-                continue;       // There's no square here.
+    square grid_square_val;     // used to make code more readable in the 
+    int prev_square_val;        // following loops
+    int curr_square_val;        //
 
-            // This checks for a top out of bounds.
-            if (grid_pos + j + i * GRID_LENGTH < -1){
-                continue;       // Do nothing and let the tetromino rotate.
-                                // It's annoying to wait for the tetromino to
-                                // fall far enough before you can rotate it.
+    const int* rotation_1;  // This the rotation after the start of the array,
+    const int* rotation_2;  //    so m_curr_arr_start is like rotation_0.
+    const int* rotation_3;
+    rotation_1 = m_curr_arr_start + (m_curr_shape_stride);
+    rotation_2 = m_curr_arr_start + (m_curr_shape_stride * 2);
+    rotation_3 = m_curr_arr_start + (m_curr_shape_stride * 3);
 
-            // This checks for a bottom out of bounds.
-            } else if (grid_pos + j + i * GRID_LENGTH > GRID_SIZE){
+    const int* prev_rotation_offset = m_curr_rotation_offset;
 
-                b_collisions++; // There could still be a left collision or 
-                                // right collision in this case, but if the bottom
-                                // of the shape is out of bounds, it should only 
-                                // upwards.
 
-                if (i != 0 && i != shape_stride - 1 && 
-                    j != 0 && j != shape_stride - 1)
-                {
-                    c_collision = true;    
-                }
+    if (dir == UP || dir == DOWN || dir == LEFT || dir == RIGHT)
+        return false;
 
-            // center collision on the left wall
-            } else if (j == leftmost_square_offset + 1 && (grid_pos + j + i * GRID_LENGTH) % GRID_LENGTH == LEFT_WALL_X)
-            {
-                c_collision = true;
-                c_collision_y = i;
-                c_collision_x = j;
-
-            // center collision on the right wall
-            } else if (j == rightmost_square_offset - 1 && (grid_pos + j + i * GRID_LENGTH) % GRID_LENGTH == RIGHT_WALL_X)
-            {
-                c_collision = true;
-                c_collision_y = i;
-                c_collision_x = j;
-                       
-            // This checks to see if the tetromino is colliding with the wall on the right side
-            } else if (j == rightmost_square_offset && ((grid_pos + j + i * GRID_LENGTH) % GRID_LENGTH >= RIGHT_WALL_X ||
-                       grid_pos + j + i * GRID_LENGTH == RIGHT_WALL_X)) // This line is redundant but I'm keeping it for readability.
-            {
-                r_collisions++;
-
-                if (i != 0 && i != shape_stride - 1 && 
-                    j != 0 && j != shape_stride - 1)
-                {
-                    c_collision = true;    
-                }
-
-            // This checks to see if the tetromino is colliding with the wall on the left side
-            } else if (j == leftmost_square_offset && ((grid_pos + j + i * GRID_LENGTH) % GRID_LENGTH <= LEFT_WALL_X ||
-                       grid_pos + j + i * GRID_LENGTH == LEFT_WALL_X))
-            {
-                l_collisions++;
-
-                if (i != 0 && i != shape_stride - 1 && 
-                    j != 0 && j != shape_stride - 1)
-                {
-                    c_collision = true;    
-                }
-            
-            } else if (grid.at(grid_pos + j + i * GRID_LENGTH) == -1){
-                // Increment all edge collisions if there are any.
-                if (i == highest_square_offset){
-                    t_collisions++;
-                }
-                if (i == lowest_square_offset){
-                    b_collisions++;
-                }
-                if (j == leftmost_square_offset){
-                    l_collisions++;
-                } 
-                if (j == rightmost_square_offset){
-                    r_collisions++;
-                }
-
-                // Set center collision true if there is one.
-                if (i != 0 && i != shape_stride - 1 && 
-                    j != 0 && j != shape_stride - 1)
-                {
-                    c_collision = true;
-                    c_collision_y = i;
-                    c_collision_x = j;
-                    
-                }
-            }
+    if (dir == CWISE){
+        if (m_curr_rotation_offset == rotation_3){
+            m_curr_rotation_offset = m_curr_arr_start;
+        } else {
+            m_curr_rotation_offset += m_curr_shape_stride;
         }
+    } else { // if dir == CCWISE
+        if (m_curr_rotation_offset == m_curr_arr_start){
+            m_curr_rotation_offset = rotation_3;
+        } else {
+            m_curr_rotation_offset -= m_curr_shape_stride;
+        }
+    }
+
+
+    // find if there is a collision with the next rotation offset
+    bool collision = false;
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
+
+            prev_square_val = *(prev_rotation_offset + j + i * m_curr_shape_arr_len);
+            curr_square_val = *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len);
+
+            if (!inBounds(tet_y_pos + i, tet_x_pos + j)){
+                if (curr_square_val != EMPTY_SQR)
+                    collision = true; // The tetromino is colliding with a wall.
+                continue;
+            }
+
+            grid_square_val = grid.at(tet_y_pos + i).at(tet_x_pos + j);
+
+            if (curr_square_val != EMPTY_SQR && prev_square_val == EMPTY_SQR &&   // if the tetromino is 
+                grid_square_val.s_type != EMPTY_SQR)                              // colliding with
+            {                                                                     // another tetromino
+                collision = true;
+            }
+
+            if (collision) break;
+        }
+        if (collision) break;
+    }
+
+    if (!collision){
+        m_curr_rotation_offset = prev_rotation_offset;
+        return true;
     }
 
     bool can_rotate = true;
-
-    if (c_collision){
-
-        if (t_collisions && b_collisions){
-            if (canShiftRight(test_rotation_offset, 2))
-                shiftTetromino(2, RIGHT);
-            else 
-                can_rotate = false;
-
-        } else if (l_collisions && r_collisions){
-            can_rotate = false;
-
-        } else if (l_collisions){
-            if (canShiftRight(test_rotation_offset, 2))
-                shiftTetromino(2, RIGHT);
-            else 
-                can_rotate = false;
-
-        } else if (r_collisions){
-
-            if (canShiftLeft(test_rotation_offset, 2))
-                shiftTetromino(2, LEFT);
-            else    
-                can_rotate = false;
-
-        } else {
-            if ((c_collision_x + 1) <= shape_stride / 2){
-                l_collisions++;
-            } else {
-                r_collisions++;
-            }
-        }
-     
-    } else if (l_collisions){
-        if (t_collisions && l_collisions < t_collisions){
-            can_rotate = false; // A tetromino should not be shifted down for a rotation.
-
-        } else if (b_collisions && l_collisions <= b_collisions){
-            // if l_collisions and b_collisions are equal, bottom collisions are prioritized
-            // shift up
-            if (canShiftUp(test_rotation_offset, 1)){
-                shiftTetromino(1, UP);
-                
-            } else if (canShiftRight(test_rotation_offset, 1)){
-                shiftTetromino(1, RIGHT);
-                
-            } else {
-                can_rotate = false;
-            }
-
-        } else if (c_collision){
-            if (canShiftRight(test_rotation_offset, 2)){
-                shiftTetromino(2, RIGHT);
-                
-            } else {
-                can_rotate = false;
-            }
-
-        } else {    // Just left collisions
-            if (canShiftRight(test_rotation_offset, 1)){
-                shiftTetromino(1, RIGHT);
-
-            } else {
-                can_rotate = false;
-            }
-        }
-    } else if (r_collisions){
-        // If there are more top collisions than right collisions and there are top collisions,
-        // return because the player should not be able to shift anywhere.
-        if (t_collisions && r_collisions < t_collisions){
-            can_rotate = false; // A tetromino should not be shifted down for a rotation.
+    if (m_curr_arr_start == L_TETROMINO_ARR ||
+        m_curr_arr_start == J_TETROMINO_ARR ||
+        m_curr_arr_start == T_TETROMINO_ARR){
         
-        // If there are more or equal bottom collisions compared to right collisions,
-        // prioritise the bottom collisions and shift up.
-        } else if (b_collisions && r_collisions <= b_collisions){
-            // If r_collisions and b_collisions are equal, bottom collisions are prioritized.
-            // shift up
-            if (canShiftUp(test_rotation_offset, 1)){
-                shiftTetromino(1, UP);
-                
-            } else if (canShiftLeft(test_rotation_offset, 1)){
-                shiftTetromino(1, LEFT);
-                
+        if (dir == CWISE){
+            if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
             } else {
                 can_rotate = false;
-            }
-        } else if (c_collision){
-            if (canShiftLeft(test_rotation_offset, 2)){
-                shiftTetromino(2, LEFT);
-                
-            } else {
-                can_rotate = false;
-            }
+            } 
 
-        } else { // just right collisions
-            if (canShiftLeft(test_rotation_offset, 1)){
-                shiftTetromino(1, LEFT);
-                
-            } else {
-                can_rotate = false;
-            }
-        }
-        
-    } else if (t_collisions){
-        if (!b_collisions)
-            can_rotate = false;
+        } else {// dir == CCWISE
 
-        else if (l_collisions){
-            if (c_collision && canShiftRight(test_rotation_offset, 2)){
-                shiftTetromino(2, RIGHT);
-            } else if (canShiftRight(test_rotation_offset, 1)){
-                shiftTetromino(1, RIGHT);
+            if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
             } else {
                 can_rotate = false;
-            }
-        } else if (r_collisions){
-            if (c_collision && canShiftLeft(test_rotation_offset, 2)){
-                shiftTetromino(2, LEFT);
-            } else if (canShiftLeft(test_rotation_offset, 1)){
-                shiftTetromino(1, LEFT);
-            } else {
-                can_rotate = false;
-            }
+            } 
+            // if (canShiftRight(1)){
+            //     blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            // } else if (canShiftLeft(1)){
+            //     blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            // } else if (canShiftUp(1)){
+            //     blindShiftTetromino(prev_rotation_offset,1, UP);
+            // } else {
+            //     can_rotate = false;
+            // } 
         }
 
-    } else if (b_collisions){ // if there is only a bottom collision
+    } else if (m_curr_arr_start == I_TETROMINO_ARR){
 
-        // shift up because there are only bottom collisions
-        if (!c_collision && canShiftUp(test_rotation_offset, 1)){
-            shiftTetromino(1, UP);
+        if ((m_curr_rotation_offset == m_curr_arr_start ||
+            m_curr_rotation_offset == rotation_2) && dir == CWISE)
+        {
+            if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            } 
             
-        } else if (c_collision && canShiftUp(test_rotation_offset, 2)){
-            shiftTetromino(2, UP);
-            
-        } else {
-            can_rotate = false;
+        } else if ((m_curr_rotation_offset == m_curr_arr_start ||
+                   m_curr_rotation_offset == rotation_2) && dir == CCWISE)
+        {
+            if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            } 
+
+        } else if ((m_curr_rotation_offset == rotation_1 ||
+                   m_curr_rotation_offset == rotation_3) && dir == CWISE)
+        {
+            if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            } 
+
+        } else if ((m_curr_rotation_offset == rotation_1 ||
+                   m_curr_rotation_offset == rotation_3) && dir == CCWISE)
+        {
+            if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            } 
         }
 
-    } 
+    } else {    // m_curr_arr_start == S_TETROMINO_ARR ||
+                // m_curr_arr_start == Z_TETROMINO_ARR
+        if (m_curr_rotation_offset == m_curr_arr_start || 
+            m_curr_rotation_offset == rotation_2)
+        {
+            if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            }
 
-    if (!can_rotate){ // set the following block data according to the original rotation.
-        calcLeftandRightSquare(m_rotation_offset);
-        calcTopandBottomSquare(m_rotation_offset);
-        return false;
-    } else {
-        return true;
+        } else {// next rotation offset == rotation 1 or 3
+            if (canShiftLeft(1)){
+                blindShiftTetromino(prev_rotation_offset,1, LEFT);
+            } else if (canShiftRight(1)){
+                blindShiftTetromino(prev_rotation_offset,1, RIGHT);
+            } else if (canShiftUp(1)){
+                blindShiftTetromino(prev_rotation_offset,1, UP);
+            } else {
+                can_rotate = false;
+            }
+        }
     }
+
+    m_curr_rotation_offset = prev_rotation_offset;
+    
+    return can_rotate;
 }
 
 // The following rotation functions move the rotation offset forwards
 // or backwards in the shape array and rotate the values on the grid.
 
-// TO DO: convert all of the rotate functions into 1 function
-
 void tetris_grid::rotateTetromino(direction rotation_dir){
 
-    const int* array_start = curr_tetromino->shapeArray();
-    int shape_stride = curr_tetromino->shapeStride();
-    
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    if (array_start == O_TETROMINO_ARR) // O_TETROMINO doesn't rotate
+    if (m_curr_arr_start == O_TETROMINO_ARR) // O_TETROMINO doesn't rotate
         return;
 
     // if user entered an ambiguous direction to rotate, specify which direction to rotate.
@@ -639,423 +528,335 @@ void tetris_grid::rotateTetromino(direction rotation_dir){
         rotation_dir = CWISE;
 
     // Assign next rotation offset
-    const int* next_rotation_offset = m_rotation_offset;
-    const int* fourth_rotation = array_start + (shape_arr_length - shape_stride);
+    const int* next_rotation_offset = m_curr_rotation_offset;
+    const int* rotation_3 = m_curr_arr_start + m_curr_shape_stride * 3;
     
     if (rotation_dir == CWISE){
-        if (next_rotation_offset == fourth_rotation){
-            next_rotation_offset = array_start;
+        if (next_rotation_offset == rotation_3){
+            next_rotation_offset = m_curr_arr_start;
         } else {
-            next_rotation_offset += shape_stride;
+            next_rotation_offset += m_curr_shape_stride;
         }
     } else { // if dir == CCWISE
-        if (next_rotation_offset == array_start){
-            next_rotation_offset = fourth_rotation;
+        if (next_rotation_offset == m_curr_arr_start){
+            next_rotation_offset = rotation_3;
         } else {
-            next_rotation_offset -= shape_stride;
+            next_rotation_offset -= m_curr_shape_stride;
         }
     }
 
-    if (!canRotate(next_rotation_offset)) return;
+    if (!canRotate(rotation_dir)) return;
+
+
+    // set new tetromino square values.
+
+    int cro_square_val;  // m_curr_rotation_offset square val
+    int nro_square_val;  // next_rotation_offset square val
+    square grid_val;
+
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
     
-
-    // TO DO: the following for loops can easily be combined.
-
-    // replace tetromino's square values with trail values.
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if (grid_pos + j + i * GRID_LENGTH >= 0 &&
-                grid.at(grid_pos + j + i * GRID_LENGTH) > 0)
-            {    
-                grid.at(grid_pos + j + i * GRID_LENGTH) = 3;
-            }
-        }
-    }
-
-    m_rotation_offset = next_rotation_offset;
-
-    // set the new tetromino square values.
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if (grid_pos + j + i * GRID_LENGTH >= 0)
-            {
-                if (*(m_rotation_offset + j + i * shape_arr_length) == 1)
-                    grid.at(grid_pos + j + i * GRID_LENGTH) = 1;
-                else if (*(m_rotation_offset + j + i * shape_arr_length) == 2)
-                    grid.at(grid_pos + j + i * GRID_LENGTH) = 2;
-            }
-        }
-    }
-}
-
-// TO DO: convert all of the canShift functions into 1 function 
-bool tetris_grid::canShiftUp(const int* test_rotation_offset, int shift_count){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    for (int col = 0; col < shape_stride; col++){
-        for (int row = 0; row < shape_stride; row++){
-                // if there is a square and
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0 &&
-                // the square is on the top row of the grid and in bounds or
-                ((grid_pos + col + (row - shift_count) * GRID_LENGTH < 0 && grid_pos + col + row * GRID_LENGTH >= 0) ||
-                // there is a square above the square
-                (grid_pos + col + (row - shift_count) * GRID_LENGTH >= 0 && grid.at(grid_pos + col + (row - shift_count) * GRID_LENGTH) == -1)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool tetris_grid::canShiftDown(const int* test_rotation_offset, int shift_count){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    for (int col = 0; col < shape_stride; col++){
-        for (int row = shape_stride - 1; row >= 0; row--){
-                // if there is a square and
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0 &&
-                // the square is on the bottom row and in bounds or
-                ((grid_pos + col + (row + shift_count) * GRID_LENGTH >= GRID_SIZE && grid_pos + col + row * GRID_LENGTH < GRID_SIZE) ||
-                // there is a square beneath the square
-                (grid_pos + col + (row + shift_count) * GRID_LENGTH < GRID_SIZE && 
-                grid_pos + col + (row + shift_count) * GRID_LENGTH > 0 &&
-                grid.at(grid_pos + col + (row + shift_count) * GRID_LENGTH) == -1)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool tetris_grid::canShiftLeft(const int* test_rotation_offset, int shift_count){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    calcLeftandRightSquare(test_rotation_offset);
-
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-                // if there is a square and
-            if (*(test_rotation_offset + j + i * shape_arr_length) > 0 &&
-                // if the square is on the left edge of the grid, and in bounds
-                (((grid_pos + (leftmost_square_offset - shift_count) + i * GRID_LENGTH) % GRID_LENGTH <= LEFT_WALL_X && grid_pos + j + i * GRID_LENGTH >= 0) ||
-                // the square is in the 0th position or 
-                // (still on left edge, but if its zero the previous condition
-                // tests false because (0 - 1) % GRID_LENGTH == 1
-                // and 1 != GRID_LENGTH - 1)
-                grid_pos + j + i * GRID_LENGTH == 0 ||
-                // there is a square to the left of the square
-                (grid_pos + (j - shift_count) + i * GRID_LENGTH >= 0 && grid.at(grid_pos + (j - shift_count) + i * GRID_LENGTH) == -1)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool tetris_grid::canShiftRight(const int* test_rotation_offset, int shift_count){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    calcLeftandRightSquare(test_rotation_offset);
-
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = shape_stride - 1; j >= 0; j--){
-            if (*(test_rotation_offset + j + i * shape_arr_length) == 0)
+            if (!inBounds(tet_y_pos + i, tet_x_pos + j))
                 continue;
-                // If the square is on the right edge of the grid and in bounds or
-            if (((grid_pos + (rightmost_square_offset + shift_count) + i * GRID_LENGTH) % GRID_LENGTH >= RIGHT_WALL_X && grid_pos + j + i * GRID_LENGTH >= 0) ||
-                // there is a square to the right of the square
-                (grid_pos + (j + shift_count) + i * GRID_LENGTH >= 0 && grid.at(grid_pos + (j + shift_count) + i * GRID_LENGTH) == -1))
+
+            grid_val = grid.at(tet_y_pos + i).at(tet_x_pos + j);
+            cro_square_val = *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len);
+            nro_square_val = *(next_rotation_offset + j + i * m_curr_shape_arr_len);
+
+            // If the square isn't empty, make it empty
+            if (cro_square_val != EMPTY_SQR)
+                grid_val.setEmpty();
+            
+            // Replace the square's value with the next rotation's square value
+            // without overwriting a different square.
+            if (nro_square_val != EMPTY_SQR){
+                grid_val.s_type = (square_type)nro_square_val;
+                grid_val.s_color = curr_tetromino.color();
+            }
+
+            // Set the actual grid value to the newly modified one.
+            grid.at(tet_y_pos + i).at(tet_x_pos + j) = grid_val;
+        }
+    }
+
+    // Set the new rotation offset.
+    m_curr_rotation_offset = next_rotation_offset;
+    curr_tetromino.calcTopandBottomSquare(m_curr_rotation_offset,
+                                          topmost_square_offset,
+                                          bottommost_square_offset);
+    curr_tetromino.calcLeftandRightSquare(m_curr_rotation_offset,
+                                          leftmost_square_offset,
+                                          rightmost_square_offset);
+}
+
+bool tetris_grid::canShiftUp(int shift_count){
+
+    for (int col = 0; col < m_curr_shape_stride; col++){
+        for (int row = 0; row < m_curr_shape_stride; row++){
+                // if there is a square and
+            if (*(m_curr_rotation_offset + col + row * m_curr_shape_arr_len) == 0){
+                continue;
+            } 
+                // the shifted square is out of bounds
+            if (!inBounds(tet_y_pos + row - shift_count, tet_x_pos + col) || 
+                // there is a square above the square
+                grid.at(tet_y_pos + row - shift_count).at(tet_x_pos + col).s_type != EMPTY_SQR)
             {
                 return false;
+            } else {
+                // skip to the next line to avoid checking if the tetromino is colliding with itself.
+                break;
             }
         }
     }
+    return true;
+}
+
+bool tetris_grid::canShiftDown(int shift_count){
+
+    for (int col = 0; col < m_curr_shape_stride; col++){
+        for (int row = m_curr_shape_stride - 1; row >= 0; row--){
+        
+            if (*(m_curr_rotation_offset + col + row * m_curr_shape_arr_len) == 0){
+                continue;
+            } 
+
+                // the shifted square is out of bounds
+            if (!inBounds(tet_y_pos + row + shift_count, tet_x_pos + col) ||
+                // there is a square beneath the square 
+                grid.at(tet_y_pos + row + shift_count).at(tet_x_pos + col).s_type != EMPTY_SQR)
+            {
+                return false;
+            } else {
+                // skip to the next line to avoid checking if the tetromino is colliding with itself.
+                break;
+            }
+        }
+    }
+    return true;
+}
+
+bool tetris_grid::canShiftLeft(int shift_count){
+
+    bool left_edge_checked;
+    for (int row = 0; row < m_curr_shape_stride; row++){
+        left_edge_checked = false;
+
+        for (int col = 0; col < m_curr_shape_stride; col++){
+            
+            if (*(m_curr_rotation_offset + col + row * m_curr_shape_arr_len) == 0){
+                continue;
+            }
+
+            if (!inBounds(tet_y_pos + row, tet_x_pos + col - shift_count)){
+                return false;
+            }
+
+            // If the leftmost square on this row has not been checked for a future collision,
+            // check it.
+            if (!left_edge_checked &&
+                grid.at(tet_y_pos + row).at(tet_x_pos + col - shift_count).s_type != EMPTY_SQR)
+            {
+                return false;
+
+            } else {
+                // the leftmost edge should be checked if the previous if statement executed.
+                left_edge_checked = true;
+            }  
+        }
+    }
+    return true;
+}
+
+bool tetris_grid::canShiftRight(int shift_count){
+
+    bool right_edge_checked;
+    for (int row = 0; row < m_curr_shape_stride; row++){
+        right_edge_checked = false;
+
+        for (int col = m_curr_shape_stride - 1; col >= 0; col--){
+
+            if (*(m_curr_rotation_offset + col + row * m_curr_shape_arr_len) == 0){
+                continue;
+            }
+
+            // If the rightmost square on this row has been checked for a future collision, 
+            // skip to the next row.
+            if (right_edge_checked){
+                break;
+            }
+
+            if (!inBounds(tet_y_pos + row, tet_x_pos + col + shift_count) || 
+                grid.at(tet_y_pos + row).at(tet_x_pos + col + shift_count).s_type != EMPTY_SQR)
+            {    
+                return false;
+            }
+
+            // the rightmost edge should be checked if the previous if statement executed.
+            right_edge_checked = true;
+        }
+    }
+
     return true;
 }
 
 void tetris_grid::shiftTetromino(int shift_count, direction dir){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
 
-    // replace all squares in tetromino with trail values.
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-                (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-                (grid.at(grid_pos + j + i * GRID_LENGTH) > 0))
+    // move grid_pos in the appropriate direction
+    int next_tet_y_pos = tet_y_pos;
+    int next_tet_x_pos = tet_x_pos;
+    if (dir == UP && canShiftUp(shift_count)){
+        next_tet_y_pos -= shift_count;
+    } else if (dir == DOWN && canShiftDown(shift_count)){
+        next_tet_y_pos += shift_count;
+    } else if (dir == LEFT && canShiftLeft(shift_count)){
+        next_tet_x_pos -= shift_count;
+    } else if (dir == RIGHT && canShiftRight(shift_count)){
+        next_tet_x_pos += shift_count;
+    } else {
+        // The block is unable to shift if none of the previous conditions are true.
+        return;
+    }
+
+    // replace all squares in tetromino with empty values.
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
+            if (inBounds(tet_y_pos + i, tet_x_pos + j) &&
+                *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len) > 0)
             {
-                grid.at(grid_pos + j + i * GRID_LENGTH) = 3;
+                grid.at(tet_y_pos + i).at(tet_x_pos + j).setEmpty();
             }
         }
     }
-        
-    // move grid_pos in the appropriate direction
-    if (dir == UP){
-        grid_pos -= (shift_count * GRID_LENGTH);
-    } else if (dir == DOWN){
-        grid_pos += (shift_count * GRID_LENGTH);
-    } else if (dir == LEFT){
-        grid_pos -= shift_count;
-    } else { //dir == RIGHT
-        grid_pos += shift_count;
-    }
+
+    tet_y_pos = next_tet_y_pos;
+    tet_x_pos = next_tet_x_pos;
 
     // reassign tetromino's values
     int square_val = 0;
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-                (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-                (grid.at(grid_pos + j + i * GRID_LENGTH) == 0 ||
-                grid.at(grid_pos + j + i * GRID_LENGTH) == 3))
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
+            if (inBounds(tet_y_pos + i, tet_x_pos + j) &&
+                grid.at(tet_y_pos + i).at(tet_x_pos + j).s_type == 0) // this shouldn't be needed after canShift() is added to the function.
             {        
-                if (*(m_rotation_offset + j + i * shape_arr_length) > 0){
-                    square_val = *(m_rotation_offset + j + i * shape_arr_length);
-                    grid.at(grid_pos + j + i * GRID_LENGTH) = square_val;
+                if (*(m_curr_rotation_offset + j + i * m_curr_shape_arr_len) > 0)
+                {
+                    square_val = *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len);
+                    grid.at(tet_y_pos + i).at(tet_x_pos + j).s_type = (square_type)square_val;
+                    grid.at(tet_y_pos + i).at(tet_x_pos + j).s_color = curr_tetromino.color();
                 }
             }
         }
     }
 }
 
-// void tetris_grid::shiftDown(int shift_count){
+// This function has a very specific use case. It shifts the tetromino position
+// in the specified direction. It erases its values from the grid, but does not 
+// reassign them, so a function to reassign them should be used afterwards.
+void tetris_grid::blindShiftTetromino(const int* rotation_offset, int shift_count, direction dir){
 
-//     int shape_stride = curr_tetromino->shapeStride();
-//     int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
+    // replace all squares in tetromino with empty values.
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
+            if (inBounds(tet_y_pos + i, tet_x_pos + j) &&
+                *(rotation_offset + j + i * m_curr_shape_arr_len) > 0)
+            {
+                grid.at(tet_y_pos + i).at(tet_x_pos + j).setEmpty();
+            }
+        }
+    }
 
-//     // grid_pos = grid_tetromino_location - (shape_stride - 1) * GRID_LENGTH;
-
-//     // erase all tetromino's values
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 (grid.at(grid_pos + j + i * GRID_LENGTH) > 0))
-//             {
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) = 0;
-//             }
-//         }
-//     }
-        
-//     // move gsh down
-//     grid_pos += (shift_count * GRID_LENGTH);
-
-//     // reassign tetromino's values
-//     int square_val = 0;
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) == 0)
-//             {        
-//                 if (*(rotation_offset + j + i * shape_arr_length) > 0){
-//                     square_val = *(rotation_offset + j + i * shape_arr_length);
-//                     grid.at(grid_pos + j + i * GRID_LENGTH) = square_val;
-//                 }
-//             }
-//         }
-//     }
-// }
-
-// void tetris_grid::shiftLeft(int shift_count){
-//     int shape_stride = curr_tetromino->shapeStride();
-//     int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-//
-//     // grid_pos = grid_tetromino_location - (shape_stride - 1) * GRID_LENGTH;
-//
-//     // erase tetromino's values
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 (grid.at(grid_pos + j + i * GRID_LENGTH) > 0))
-//             {
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) = 0;
-//             }
-//         }
-//     }
-//      
-//     // move gsh left
-//     grid_pos -= shift_count;
-//
-//     // reassign tetromino's values
-//     int square_val = 0;
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) == 0)
-//             {        
-//                 if (*(rotation_offset + j + i * shape_arr_length) > 0){
-//                     square_val = *(rotation_offset + j + i * shape_arr_length);
-//                     grid.at(grid_pos + j + i * GRID_LENGTH) = square_val;
-//                 }
-//             }
-//         }
-//     }
-// }
-
-// void tetris_grid::shiftRight(int shift_count){
-//     int shape_stride = curr_tetromino->shapeStride();
-//     int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-//
-//     // grid_pos = grid_tetromino_location - (shape_stride - 1) * GRID_LENGTH;
-//
-//     // erase tetromino's values
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 (grid.at(grid_pos + j + i * GRID_LENGTH) > 0))
-//             {
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) = 0;
-//             }
-//         }
-//     }
-//     
-//     // move gsh right
-//     grid_pos += shift_count;
-//
-//     // reassign tetromino's values
-//     int square_val = 0;
-//     for (int i = 0; i < shape_stride; i++){
-//         for (int j = 0; j < shape_stride; j++){
-//             if ((grid_pos + j + i * GRID_LENGTH) >= 0 &&
-//                 (grid_pos + j + i * GRID_LENGTH) < GRID_SIZE &&
-//                 grid.at(grid_pos + j + i * GRID_LENGTH) == 0)
-//             {        
-//                 if (*(rotation_offset + j + i * shape_arr_length) > 0){
-//                     square_val = *(rotation_offset + j + i * shape_arr_length);
-//                     grid.at(grid_pos + j + i * GRID_LENGTH) = square_val;
-//                 }
-//             }
-//         }
-//     }
-// }
+    // move grid_pos in the appropriate direction
+    if (dir == UP){
+        tet_y_pos -= shift_count;
+    } else if (dir == DOWN){
+        tet_y_pos += shift_count;
+    } else if (dir == LEFT){
+        tet_x_pos -= shift_count;
+    } else if (dir == RIGHT){
+        tet_x_pos += shift_count;
+    } else {
+        return; // an invalid direction variable was passed.
+    }
+}
 
 // TETROMINO HANDLING =============================================================
 // SOME OF THIS SHOULD BELONG TO THE TETROMINO CLASS
 
 void tetris_grid::generateNextTetromino(){
     curr_tetromino = next_tetromino;
-    m_rotation_offset = curr_tetromino->shapeArray();
-    next_tetromino = &tetris_tetrominoes[rand() % 7];
-}
+    next_tetromino = tetris_tetrominoes[rand() % 7];
 
-// Calculates the highest row of the current tetromino in the shape array
-void tetris_grid::calcTopandBottomSquare(const int* test_rotation_offset){
-    
-    int shape_stride = curr_tetromino->shapeStride();
-
-    // Since the shape array is not 2D, to step through it like it is 2D, there
-    // needs to be a multiplier that will get you to the next "row". This case
-    // is more complicated because i only want to read a quarter of the array
-    // like its 2D, and because I'm working with pointer and not the index
-    // operator.
-    //   To read from only a section of the array like it's 2D, there needs to
-    // be an offset that, once you've made it to the new "row", can be used
-    // to put you back on the correct "column".
-
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-    // Hit is true when a 1 is found in the part of the array that is being searched.
-    int hit = false;
-    for (int row = 0; row < shape_stride; row++){
-        for (int col = 0; col < shape_stride; col++){
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0){
-                highest_square_offset = row;
-                hit = true;
-                break;
-            }  
-        }
-        if (hit) break;
-    }
-
-    hit = false;
-    for (int row = shape_stride - 1; row >= 0; row--){
-        for (int col = 0; col < shape_stride; col++){
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0){
-                lowest_square_offset = row;
-                hit = true;
-                break;
-            }  
-        }
-        if (hit) break;
-    }
-}
-
-void tetris_grid::calcLeftandRightSquare(const int* test_rotation_offset){
-
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    int hit = false;
-    for (int col = 0; col < shape_stride; col++){
-        for (int row = 0; row < shape_stride; row++){
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0){
-                leftmost_square_offset = col;
-                hit = true;
-                break;
-            }  
-        }
-        if (hit) break;
-    }
-
-    hit = false;
-    for (int col = shape_stride - 1; col >= 0; col--){
-        for (int row = 0; row < shape_stride; row++){
-            if (*(test_rotation_offset + col + row * shape_arr_length) > 0){
-                rightmost_square_offset = col;
-                hit = true;
-                break;
-            }  
-        }
-        if (hit) break;
-    }
+    // set new curr_tetrimono data
+    setCurrTetrominoData();
 }
 
 void tetris_grid::setCurrTetrominoOnGrid(){
 
-    calcLeftandRightSquare(m_rotation_offset);
-    calcTopandBottomSquare(m_rotation_offset);
+    tet_x_pos = (GRID_LENGTH - m_curr_shape_stride) / 2;
+    tet_y_pos = -topmost_square_offset; // this sets it to the highest value in the 
+                                        // shape array if it were to be placed onto 
+                                        // the grid with the highest square of the
+                                        // tetromino on row zero.
+                                        //
+                                        // ex.) -2|     0 0 0 0 <- top of shape array
+                                        //      -1|     0 0 0 0
+                                        // -------|-----------------
+                                        //       0|     2 2 2 2 <- highest_square_offset
+                                        //       1|     0 0 0 0    (from top of shape array)
+                                        //       2|
+                                        // 
+                                        // tet_y_pos would be - 2
 
-    int shape_stride = curr_tetromino->shapeStride();
-    int grid_start_x = (GRID_LENGTH - shape_stride) / 2;
+    // I replaced may 2d array accesses with pointers in an attempt to shrink
+    // code size, but I'm not too sure if it made it any more readable. Also,
+    // to make the code more readable, I separated the out of bounds condition
+    // from the others, so i could arrange the variable assignments nicely.
+    int arr_val;
+    square* grid_val;
+    for (int i = 0; i < m_curr_shape_stride; i++){
+        for (int j = 0; j < m_curr_shape_stride; j++){
 
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
+            if (!inBounds(tet_y_pos + i, tet_x_pos + j)){
+                continue;
+            }
 
-    grid_pos = grid_start_x - highest_square_offset * GRID_LENGTH;
+            arr_val = *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len);
+            grid_val = &grid.at(tet_y_pos + i).at(tet_x_pos + j);
 
-    int square_val = 0;
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if (*(m_rotation_offset + j + i * shape_arr_length) > 0 &&
-                grid_pos + j + i * GRID_LENGTH >= 0 &&
-                grid_pos + j + i * GRID_LENGTH < GRID_SIZE && 
-                grid.at(grid_pos + j + i * GRID_LENGTH) == 0)
+            if (arr_val > 0 && 
+                grid_val->s_type == EMPTY_SQR)
             {
-                square_val = *(m_rotation_offset + j + i * shape_arr_length);
-                grid.at(grid_pos + j + i * GRID_LENGTH) = square_val;
+                grid_val->s_type = (square_type)arr_val;
+                grid_val->s_color = curr_tetromino.color();
             }
         }
     }
 }
 
-void tetris_grid::settleCurrTetromino(){
-    int shape_stride = curr_tetromino->shapeStride();
-    int shape_arr_length = shape_stride * POSSIBLE_ROTATIONS;
-
-    for (int i = 0; i < shape_stride; i++){
-        for (int j = 0; j < shape_stride; j++){
-            if (*(m_rotation_offset + j + i * shape_arr_length) > 0){
-                grid.at(grid_pos + j + i * GRID_LENGTH) = -1;
-            }
-        }
+bool tetris_grid::inBounds(int y, int x){
+    if (y >= 0 && y < GRID_HEIGHT &&
+        x >= 0 && x < GRID_LENGTH)
+    {
+        return true;
     }
-} 
+    
+    return false;
+}
+
+// This function copies all of the current block's data to variables, so that
+// can be used within the tetris_grid class without calling their getters each
+// time.
+void tetris_grid::setCurrTetrominoData(){
+    m_curr_arr_start = curr_tetromino.shapeArray();
+    m_curr_rotation_offset = m_curr_arr_start;
+    m_curr_shape_stride = curr_tetromino.shapeStride();
+    m_curr_shape_arr_len = m_curr_shape_stride * POSSIBLE_ROTATIONS;
+    curr_tetromino.calcTopandBottomSquare(m_curr_rotation_offset, 
+                                          topmost_square_offset, 
+                                          bottommost_square_offset);
+    curr_tetromino.calcLeftandRightSquare(m_curr_rotation_offset, 
+                                          leftmost_square_offset, 
+                                          rightmost_square_offset);
+}
