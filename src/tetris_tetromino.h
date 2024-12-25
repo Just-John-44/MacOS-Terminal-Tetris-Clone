@@ -1,46 +1,25 @@
 #ifndef TETRIS_TETROMINO_H
 #define TETRIS_TETROMINO_H
 
+#include "tetris_types.h"
+
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last Edited: 10/17/2024
+// Last Edited: 10/24/2024
 // tetris_tetromino.h
 
 // DATA =======================================================================
 
 // The following tetromino rotations follow the NES tetris rules.
-extern const int L_TETROMINO_ARR[36];
-extern const int J_TETROMINO_ARR[36];
-extern const int T_TETROMINO_ARR[36];
-extern const int I_TETROMINO_ARR[64]; 
-extern const int S_TETROMINO_ARR[36];
-extern const int Z_TETROMINO_ARR[36];
-extern const int O_TETROMINO_ARR[36];
+extern const int L_TETROMINO_ARR[3][12];
+extern const int J_TETROMINO_ARR[3][12];
+extern const int T_TETROMINO_ARR[3][12];
+extern const int I_TETROMINO_ARR[4][16]; 
+extern const int S_TETROMINO_ARR[3][12];
+extern const int Z_TETROMINO_ARR[3][12];
+extern const int O_TETROMINO_ARR[3][12];
 
-enum tetromino_type {
-    L_TETROMINO = 1,
-    J_TETROMINO,
-    T_TETROMINO,
-    I_TETROMINO,
-    S_TETROMINO,
-    Z_TETROMINO,
-    O_TETROMINO
-};
-
-#ifndef ENUM_COLOR_ID
-#define ENUM_COLOR_ID
-enum color_id{
-    STANDARD = 1,
-    ORANGE,
-    BLUE,
-    PURPLE,
-    CYAN,
-    GREEN,
-    RED,
-    YELLOW
-};
-#endif
 
 const int POSSIBLE_ROTATIONS = 4; // This doesn't apply to the O_TETROMINO
 
@@ -50,32 +29,50 @@ class tetromino {
 
 public:
 
-    // Constructors
-    tetromino();
+    // Constructors and Destructors
     tetromino(tetromino_type);
     tetromino(const tetromino &);
-    
+    ~tetromino();
+
     // Operators
     tetromino& operator = (const tetromino&);
 
     // Accessors
-    const int* shapeArray() const;
-    int shapeStride() const;
-    color_id color() const;
+    // const int* shapeArray() const;
+    // int shapeStride() const;
+    // color_id color() const;
 
     // Functions
-    void calcTopandBottomSquare(const int*, int&, int&);
-    void calcLeftandRightSquare(const int*, int&, int&);
+    void rotate(direction);
+    // bool canRotate(direction);
+    int shapeAt(int, int);
 
-    const int* m_shape_arr_ptr; // the tetromino's shape array
+    int current_rotation;  // this holds the x index of the top left corner of 
+                           // the current rotation.
+
+    int sstride; // the length of each section of the shape array. sstride is shape stride
+    int salength; // the length of one row of the entire shape array
+
+    int topmost_sqr,
+        bottommost_sqr,
+        leftmost_sqr,
+        rightmost_sqr;
+
+    tetromino_type type;
+    color_id color;    
 
 private:
 
-    color_id m_color_id;
-    int m_shape_stride; // the distance from one rotation to another in the tetromino shape array
+    int** shape_arr; // the tetromino's shape array
     
+    // Functions
+    void calcTopandBottomSquare();
+    void calcLeftandRightSquare();
+    template<int rows, int cols>
+    // original for 2D arrays
+    void setShapeArray(const int(&)[rows][cols]);
+    // overload for int**
+    void setShapeArray(int**, int, int);
 };
-
-
 
 #endif

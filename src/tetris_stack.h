@@ -10,29 +10,8 @@
 
 
 #include <vector>
+#include "tetris_types.h"
 
-
-// DATA =======================================================================
-
-#ifndef ENUM_COLOR_ID
-#define ENUM_COLOR_ID
-enum color_id{
-    STANDARD = 1,
-    ORANGE,
-    BLUE,
-    PURPLE,
-    CYAN,
-    GREEN,
-    RED,
-    YELLOW
-};
-#endif
-
-enum square_type {
-    EMPTY_SQR = 0,
-    TOP_SQR,
-    BOTTOM_SQR
-};
 
 // SQUARE =====================================================================
 
