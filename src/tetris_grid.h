@@ -10,6 +10,7 @@
 #include <ncurses.h>
 #include <ctime>
 #include <vector>
+#include <random>
 #include "tetris_types.h"
 #include "tetris_tetromino.h"
 #include "tetris_stack.h"
@@ -18,6 +19,10 @@
 
 class tetris_grid {
 public:
+
+    int GRID_HEIGHT;
+    int GRID_LENGTH;
+    int GRID_SIZE;
 
     tetromino* curr_tet;
     tetromino* next_tet;
@@ -39,7 +44,6 @@ public:
     };
 
     tetris_grid();
-    void printInfo(WINDOW*);
     void printGrid(WINDOW*);
     void refreshTetromino(WINDOW*);
     void generateNextTetromino();
@@ -50,6 +54,11 @@ public:
     void stackRowsShift(WINDOW*);
 
 private:
+
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_int_distribution<> dist;
+
     bool peekShiftTetromino(int, int);
     void removeTetromino();
     void placeTetromino();

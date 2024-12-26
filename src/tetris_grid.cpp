@@ -1,10 +1,10 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last Edited: 12/24/2024
+// Last Edited: 12/26/2024
 // tetris_grid.cpp
 
-// This file includes all of the implentation for the tetromino class and
+// This file includes all of the implementation for the tetromino class and
 // tetris_grid class.
 
 #include <iostream>
@@ -13,33 +13,29 @@
 #include "tetris_stack.h"
 #include "tetris_tetromino.h"
 
-
-// TO DO: tetris init should create the window that it's displayed in as well.
-// TO DO: import the random library for better tetromino generation
-// TO DO: improve the refreshTetromino function's speed
-// TO DO: create a game over function called topReached()
-// TO DO: make the place tetromino on grid function return false or -1 if 
-//        a block could not be placed.
 // TO DO: create a tetris settings class or struct that has all of the tetris
 //        setting data as well as getters and setters
-// TO DO: prefix the variables in the tetris_grid class with m
+// TO DO: improve naming.
 // TO DO: make appropriate functions pass by reference and const
 // TO DO: make the terminal print in only black and white if it doesn't support colors.
-// TO DO: I should probably make the tetromino arrays square types instead of ints
+// TO DO: I should probably make the tetromino array square types instead of ints
+// TO DO: rename GRID_LENGTH and GRID_HEIGHT
 
 // ============================================================================
 // TETRIS_GRID CLASS 
 // ============================================================================
 
-int GRID_HEIGHT = 20;
-int GRID_LENGTH = 10;
-int GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
-
-//
 tetris_grid::tetris_grid(){
 
-    curr_tet = &tetris_tetrominoes[rand() % 7];
-    next_tet = &tetris_tetrominoes[rand() % 7];
+    GRID_HEIGHT = 20;
+    GRID_LENGTH = 10;
+    GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
+
+    gen = std::mt19937(rd());
+    dist = std::uniform_int_distribution<>(0, 6);
+
+    curr_tet = &tetris_tetrominoes[dist(gen)];
+    next_tet = &tetris_tetrominoes[dist(gen)];
 
     // set non garbage values for the position of the tetromino on the grid
     tet_y_pos = tet_x_pos = 0;
@@ -50,31 +46,6 @@ tetris_grid::tetris_grid(){
     for (int i = 0; i < GRID_HEIGHT; i++){
         grid.at(i).resize(GRID_LENGTH);
     }
-}
-
-//
-void tetris_grid::printInfo(WINDOW* win){
-
-    int y;
-    
-    y = 30;
-    wmove(win, y, 0);
-    wclrtoeol(win);
-    wprintw(win, "tet_y: %i", tet_y_pos);
-    wmove(win, y += 2, 0);
-    wclrtoeol(win);
-    wprintw(win, "tet_x: %i", tet_x_pos);
-    wmove(win, y += 2, 0);
-    wclrtoeol(win);
-    wprintw(win, "tet_type: %i", curr_tet->type);
-    wmove(win, y += 2, 0);
-    wclrtoeol(win);
-    wprintw(win, "tet_sstride: %i", curr_tet->sstride);
-    wmove(win, y += 2, 0);
-    wclrtoeol(win);
-    wprintw(win, "tet_salength: %i", curr_tet->salength);
-
-    wrefresh(win);
 }
 
 // TERMINAL OUTPUT ============================================================
@@ -241,116 +212,6 @@ void tetris_grid::stackRowsShift(WINDOW* grid_win){
 }
 
 // MOVEMENT AND MOVEMENT VALIDATION ===========================================
-
-// bool tetris_grid::canShiftUp(int shift_count){
-//
-//     for (int col = 0; col < curr_tet->sstride; col++){
-//         for (int row = 0; row < curr_tet->sstride; row++){
-//                 // if there is a square and
-//             if (curr_tet->shape_arr[row][curr_tet->current_rotation + col] == 0){
-//                 continue;
-//             } 
-//                 // the shifted square is out of bounds
-//             if (!inBounds(tet_y_pos + row - shift_count, tet_x_pos + col) || 
-//                 // there is a square above the square
-//                 grid.at(tet_y_pos + row - shift_count).at(tet_x_pos + col).s_type != EMPTY_SQR)
-//             {
-//                 return false;
-//             } else {
-//                 // skip to the next line to avoid checking if the tetromino is colliding with itself.
-//                 break;
-//             }
-//         }
-//     }
-//     return true;
-// }
-//
-// bool tetris_grid::canShiftDown(int shift_count){
-//
-//     for (int col = 0; col < curr_tet->sstride; col++){
-//         for (int row = curr_tet->sstride - 1; row >= 0; row--){
-//     
-//             if (curr_tet->shape_arr[row][curr_tet->current_rotation + col] == 0){
-//                 continue;
-//             } 
-//
-//                 // the shifted square is out of bounds
-//             if (!inBounds(tet_y_pos + row + shift_count, tet_x_pos + col) ||
-//                 // there is a square beneath the square 
-//                 grid.at(tet_y_pos + row + shift_count).at(tet_x_pos + col).s_type != EMPTY_SQR)
-//             {
-//                 return false;
-//             } else {
-//                 // skip to the next line to avoid checking if the tetromino is colliding with itself.
-//                 break;
-//             }
-//         }
-//     }
-//     return true;
-// }
-//
-// bool tetris_grid::canShiftLeft(int shift_count){
-//
-//     bool left_edge_checked;
-//     for (int row = 0; row < curr_tet->sstride; row++){
-//         left_edge_checked = false;
-//
-//         for (int col = 0; col < curr_tet->sstride; col++){             
-//             if (curr_tet->shape_arr[row][curr_tet->current_rotation + col] == 0){
-//                 continue;
-//             }
-//
-//             if (!inBounds(tet_y_pos + row, tet_x_pos + col - shift_count)){
-//                 return false;
-//             }
-//
-//             // If the leftmost square on this row has not been checked for a future collision,
-//             // check it.
-//             if (!left_edge_checked &&
-//                 grid.at(tet_y_pos + row).at(tet_x_pos + col - shift_count).s_type != EMPTY_SQR)
-//             {
-//                 return false;
-//
-//             } else {
-//                 // the leftmost edge should be checked if the previous if statement executed.
-//                 left_edge_checked = true;
-//             }  
-//         }
-//     }
-//     return true;
-// }
-//
-// bool tetris_grid::canShiftRight(int shift_count){
-//
-//     bool right_edge_checked;
-//     for (int row = 0; row < curr_tet->sstride; row++){
-//         right_edge_checked = false;
-//
-//         for (int col = curr_tet->sstride - 1; col >= 0; col--){
-//
-//             if (curr_tet->shape_arr[row][curr_tet->current_rotation + col] == 0){
-//                 continue;
-//             }
-//
-//             // If the rightmost square on this row has been checked for a future collision, 
-//             // skip to the next row.
-//             if (right_edge_checked){
-//                 break;
-//             }
-//
-//             if (!inBounds(tet_y_pos + row, tet_x_pos + col + shift_count) || 
-//                 grid.at(tet_y_pos + row).at(tet_x_pos + col + shift_count).s_type != EMPTY_SQR)
-//             {    
-//                 return false;
-//             }
-//
-//             // the rightmost edge should be checked if the previous if statement executed.
-//             right_edge_checked = true;
-//         }
-//     }
-//
-//     return true;
-// }
 
 // shiftTetromino simply moves the current tetromino's data in a specific
 // on the grid. If the shift is unsuccessful, the tetromino's data is replaced 
@@ -644,7 +505,7 @@ void tetris_grid::placeTetromino(){
 //
 void tetris_grid::generateNextTetromino(){
     curr_tet = next_tet;
-    next_tet = &tetris_tetrominoes[rand() % 7];
+    next_tet = &tetris_tetrominoes[dist(gen)];
 }
 
 //

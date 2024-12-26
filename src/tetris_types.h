@@ -15,6 +15,8 @@ enum tetromino_type {
 
 #define COLOR_PURPLE 8  
 #define COLOR_ORANGE 9 
+#define COLOR_L_BLUE 10
+#define COLOR_L_YELLOW 11
 
 enum color_id{
     STANDARD = 1,
@@ -24,7 +26,9 @@ enum color_id{
     CYAN,
     GREEN,
     RED,
-    YELLOW
+    YELLOW,
+    L_BLUE,
+    L_YELLOW
 };
 
 enum square_type {
@@ -34,10 +38,6 @@ enum square_type {
 };
 
 enum direction {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT, 
     CWISE,
     CCWISE
 };
