@@ -20,6 +20,8 @@
 // TO DO: make the terminal print in only black and white if it doesn't support colors.
 // TO DO: I should probably make the tetromino array square types instead of ints
 // TO DO: rename GRID_LENGTH and GRID_HEIGHT
+// TO DO: improve the random block generation.
+// TO DO: improve the print lag for the tetromino refresh function
 
 // ============================================================================
 // TETRIS_GRID CLASS 
@@ -439,6 +441,17 @@ bool tetris_grid::rotateTetromino(direction dir){
 
     placeTetromino();
     return can_rotate;
+}
+
+// dropTetromino shifts the current tetromino as far down as it can go on the
+// grid.
+void tetris_grid::dropTetromino(){
+    removeTetromino();
+
+    while(peekShiftTetromino(1, 0));
+
+    placeTetromino();
+
 }
 
 // colliding checks to see that if the current tetromino were to be on the

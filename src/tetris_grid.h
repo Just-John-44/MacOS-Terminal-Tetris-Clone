@@ -50,6 +50,7 @@ public:
     bool setCurrTetrominoOnGrid();
     bool shiftTetromino(int, int); 
     bool rotateTetromino(direction);
+    void dropTetromino();
     void stackWipeCompleteRows(WINDOW*);
     void stackRowsShift(WINDOW*);
 
