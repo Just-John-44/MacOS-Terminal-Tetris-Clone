@@ -28,6 +28,8 @@ public:
     tetromino* next_tet;
     std::vector<std::vector<square> > grid;
     
+    WINDOW* win;
+
     // int grid_pos;     
     int tet_y_pos,
         tet_x_pos;     
@@ -43,16 +45,16 @@ public:
         tetromino(O_TETROMINO)
     };
 
-    tetris_grid();
-    void printGrid(WINDOW*);
-    void refreshTetromino(WINDOW*);
+    tetris_grid(int y = 0, int x = 0);
+    ~tetris_grid();
+    void printGrid();
     void generateNextTetromino();
     bool setCurrTetrominoOnGrid();
     bool shiftTetromino(int, int); 
     bool rotateTetromino(direction);
     void dropTetromino();
-    void stackWipeCompleteRows(WINDOW*);
-    void stackRowsShift(WINDOW*);
+    void stackWipeCompleteRows();
+    void stackRowsShift();
 
 private:
 
@@ -64,8 +66,6 @@ private:
     void removeTetromino();
     void placeTetromino();
     bool colliding();
-
-    bool inBounds(int, int);
 };
 
 #endif

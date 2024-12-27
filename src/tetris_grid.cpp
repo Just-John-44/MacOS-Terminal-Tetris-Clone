@@ -8,6 +8,7 @@
 // tetris_grid class.
 
 #include <iostream>
+#include <ncurses.h>
 
 #include "tetris_grid.h"
 #include "tetris_stack.h"
@@ -21,13 +22,14 @@
 // TO DO: I should probably make the tetromino array square types instead of ints
 // TO DO: rename GRID_LENGTH and GRID_HEIGHT
 // TO DO: improve the random block generation.
-// TO DO: improve the print lag for the tetromino refresh function
+// TO DO: fix strange bug where at the beginning of the program, the tetromino isn't
+//        printed.
 
 // ============================================================================
 // TETRIS_GRID CLASS 
 // ============================================================================
 
-tetris_grid::tetris_grid(){
+tetris_grid::tetris_grid(int y, int x){
 
     GRID_HEIGHT = 20;
     GRID_LENGTH = 10;
@@ -42,6 +44,8 @@ tetris_grid::tetris_grid(){
     // set non garbage values for the position of the tetromino on the grid
     tet_y_pos = tet_x_pos = 0;
 
+    win = newwin(GRID_HEIGHT + 1, GRID_LENGTH * 3 + 1, y, x);
+
     // This resizes the grid to the default values: a height of 20 and
     // a length of 10.
     grid.resize(GRID_HEIGHT);
@@ -50,97 +54,48 @@ tetris_grid::tetris_grid(){
     }
 }
 
+tetris_grid::~tetris_grid(){
+    delwin(win);
+}
+
 // TERMINAL OUTPUT ============================================================
 
-void tetris_grid::printGrid(WINDOW* grid_win){
+void tetris_grid::printGrid(){
     int win_height, win_length;
-    getmaxyx(grid_win, win_height, win_length);
+    getmaxyx(win, win_height, win_length);
 
-    if (win_height < (GRID_HEIGHT) + 2 || 
-        win_length < (GRID_LENGTH * 3) + 2)
+    if (win_height > GRID_HEIGHT + 2 || 
+        win_length > GRID_LENGTH * 3 + 2)
         return;
     
-    wmove(grid_win, 1, 1);
+    wmove(win, 0, 0);
     for (int i = 0; i < GRID_HEIGHT; i++){  
         for (int j = 0; j < GRID_LENGTH; j++){    
 
             if (grid.at(i).at(j).s_type == EMPTY_SQR){
-                wprintw(grid_win, "   ");   
+                wprintw(win, "   ");   
                 continue;
             }
 
-            wattron(grid_win, COLOR_PAIR(grid.at(i).at(j).s_color));
+            wattron(win, COLOR_PAIR(grid.at(i).at(j).s_color));
             if (grid.at(i).at(j).s_type == TOP_SQR){  
-                wprintw(grid_win, "[ ]");
+                wprintw(win, "[ ]");
             } else if (grid.at(i).at(j).s_type == BOTTOM_SQR){                                      
-                wprintw(grid_win, "[_]");
+                wprintw(win, "[_]");
             }
             // wprintw(grid_win, " (%2i, %i)", grid.at(i).at(j).s_type, grid.at(i).at(j).s_color);
-            wattroff(grid_win, COLOR_PAIR(grid.at(i).at(j).s_color));
+            wattroff(win, COLOR_PAIR(grid.at(i).at(j).s_color));
         }
-        wmove(grid_win, i + 2, 1);
+        wmove(win, i + 1, 0);
     }
 
-    wrefresh(grid_win);
-}
-
-// TO DO: improve the speed of this function, some squares are lagging when the 
-//        tetromino is moved fast. ALSO... there doesnt need to be a trail 
-//        value becuase you can simply print spaces where there are zeroes. I 
-//        can probably improve the way it's printed by adding all of the print 
-//        coordinates to an array and printing them out by moving down the 
-//        y_values instead of having a bunch of calculations between each
-//        print.
-
-// This function only reprints the current tetromino
-void tetris_grid::refreshTetromino(WINDOW* grid_win){
-
-    int refresh_idx_y = tet_y_pos - 2;
-    int refresh_idx_x = tet_x_pos - 2;
-
-    int refresh_area_height = curr_tet->sstride + 4; // +2 on all sides of shape array
-    int refresh_area_width = curr_tet->sstride + 4;  //
-
-    for (int i = 0; i < refresh_area_height; i++){
-        for (int j = 0; j < refresh_area_width; j++){
-
-            if (!inBounds(refresh_idx_y + i, refresh_idx_x + j)){
-                continue;
-            } 
-            
-            // 3 is the width of each printed square, and 1 is added to offset
-            // from the border of the ncurses window
-            wmove(grid_win, refresh_idx_y + i + 1, (refresh_idx_x + j) * 3 + 1);
-            wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-
-            if (grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_type == TOP_SQR){
-
-                //wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-                wprintw(grid_win, "[ ]");
-                //wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-
-
-            } else if (grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_type == BOTTOM_SQR){
-
-                //wattron(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-                wprintw(grid_win, "[_]");
-                //wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-
-
-            } else {
-                wprintw(grid_win, "   ");
-            } 
-
-            wattroff(grid_win, COLOR_PAIR(grid.at(refresh_idx_y + i).at(refresh_idx_x + j).s_color));
-            wrefresh(grid_win);
-        }
-    }
+    wrefresh(win);
 }
 
 // TETRIS STACK MANIPULATION ==================================================
 
 //
-void tetris_grid::stackWipeCompleteRows(WINDOW* grid_win){ 
+void tetris_grid::stackWipeCompleteRows(){ 
     bool row_full;
     for (int i = 0; i < GRID_HEIGHT; i++){
 
@@ -163,7 +118,7 @@ void tetris_grid::stackWipeCompleteRows(WINDOW* grid_win){
 }
 
 //
-void tetris_grid::stackRowsShift(WINDOW* grid_win){
+void tetris_grid::stackRowsShift(){
     bool unempty_row_arr[GRID_HEIGHT];
     int unempty_row_count = 0;
 
@@ -543,42 +498,19 @@ bool tetris_grid::setCurrTetrominoOnGrid(){
         return false;
     }
 
-    // I replaced may 2d array accesses with pointers in an attempt to shrink
-    // code size, but I'm not too sure if it made it any more readable. Also,
-    // to make the code more readable, I separated the out of bounds condition
-    // from the others, so i could arrange the variable assignments nicely.
-    int arr_val;
-    square* grid_val;
     for (int i = 0; i < curr_tet->sstride; i++){
         for (int j = 0; j < curr_tet->sstride; j++){
 
             // Skip the square values that are out of bounds.
-            if (!inBounds(tet_y_pos + i, tet_x_pos + j)){
+            if (curr_tet->shapeAt(i, j) == EMPTY_SQR){
                 continue;
             }
 
-            arr_val = curr_tet->shapeAt(i, j);
-            grid_val = &grid.at(tet_y_pos + i).at(tet_x_pos + j);
+            grid.at(tet_y_pos + i).at(tet_x_pos + j).s_type = (square_type)curr_tet->shapeAt(i, j);
 
-            if (arr_val > 0 && 
-                grid_val->s_type == EMPTY_SQR)
-            {
-                grid_val->s_type = (square_type)arr_val;
-                grid_val->s_color = curr_tet->color;
-            }
+            grid.at(tet_y_pos + i).at(tet_x_pos + j).s_color = curr_tet->color;
         }
     }
 
     return true;
-}
-
-//
-bool tetris_grid::inBounds(int y, int x){
-    if (y >= 0 && y < GRID_HEIGHT &&
-        x >= 0 && x < GRID_LENGTH)
-    {
-        return true;
-    }
-    
-    return false;
 }
