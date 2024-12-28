@@ -33,7 +33,6 @@ tetris_grid::tetris_grid(int y, int x){
 
     GRID_HEIGHT = 20;
     GRID_LENGTH = 10;
-    GRID_SIZE = GRID_HEIGHT * GRID_LENGTH;
 
     gen = std::mt19937(rd());
     dist = std::uniform_int_distribution<>(0, 6);
@@ -44,7 +43,8 @@ tetris_grid::tetris_grid(int y, int x){
     // set non garbage values for the position of the tetromino on the grid
     tet_y_pos = tet_x_pos = 0;
 
-    win = newwin(GRID_HEIGHT + 1, GRID_LENGTH * 3 + 1, y, x);
+    win = newwin(GRID_HEIGHT, GRID_LENGTH * 3, y, x);
+    refresh();
 
     // This resizes the grid to the default values: a height of 20 and
     // a length of 10.
@@ -61,12 +61,12 @@ tetris_grid::~tetris_grid(){
 // TERMINAL OUTPUT ============================================================
 
 void tetris_grid::printGrid(){
-    int win_height, win_length;
-    getmaxyx(win, win_height, win_length);
+    // int win_height, win_length;
+    // getmaxyx(win, win_height, win_length);
 
-    if (win_height > GRID_HEIGHT + 2 || 
-        win_length > GRID_LENGTH * 3 + 2)
-        return;
+    // if (win_height > GRID_HEIGHT + 2 || 
+    //     win_length > GRID_LENGTH * 3 + 2)
+    //     return;
     
     wmove(win, 0, 0);
     for (int i = 0; i < GRID_HEIGHT; i++){  
@@ -83,7 +83,7 @@ void tetris_grid::printGrid(){
             } else if (grid.at(i).at(j).s_type == BOTTOM_SQR){                                      
                 wprintw(win, "[_]");
             }
-            // wprintw(grid_win, " (%2i, %i)", grid.at(i).at(j).s_type, grid.at(i).at(j).s_color);
+            //wprintw(win, " %i ", grid.at(i).at(j).s_type);
             wattroff(win, COLOR_PAIR(grid.at(i).at(j).s_color));
         }
         wmove(win, i + 1, 0);
@@ -507,7 +507,6 @@ bool tetris_grid::setCurrTetrominoOnGrid(){
             }
 
             grid.at(tet_y_pos + i).at(tet_x_pos + j).s_type = (square_type)curr_tet->shapeAt(i, j);
-
             grid.at(tet_y_pos + i).at(tet_x_pos + j).s_color = curr_tet->color;
         }
     }

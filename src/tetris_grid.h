@@ -22,15 +22,13 @@ public:
 
     int GRID_HEIGHT;
     int GRID_LENGTH;
-    int GRID_SIZE;
 
     tetromino* curr_tet;
     tetromino* next_tet;
     std::vector<std::vector<square> > grid;
     
     WINDOW* win;
-
-    // int grid_pos;     
+     
     int tet_y_pos,
         tet_x_pos;     
     

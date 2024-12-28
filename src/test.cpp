@@ -9,51 +9,23 @@
 #include "tetris_grid.h"
 
 void printTetrisFrame(tetris_grid &);
-
+void terminalInit();
+void playTetris(tetris_grid &grid);
 // TO DO: create a more reliable way to initialize the terminal in 
 //        terminal_init so it's changes will affect all file translations.
 // TO DO: add the music functions
 // TO DO: add the menu functions
-
-// TO DO: make the tetris frame dynamic so that it prints correctly when
-//        the tetris grid is expanded.
-
 // TO DO: wrap some of the functions at the beginning fo the program to
 //        make what is happening more understandable.
 // TO DO: remove the tetris_stack files because there is a bunch of unused code
 // TO DO: integrate tetris' window into its own class
+// TO DO: prompt the user to expand the terminal window to a specific size if it is
+//        too small to print the window
+// TO DO: create a separate window for the score
 
-void terminal_init(){
-
-    curs_set(0);
-    noecho();
-
-    if (has_colors()){
-        start_color();
-
-        if (can_change_color()){
-            
-            init_color(COLOR_PURPLE, 626, 125, 940);
-            init_color(COLOR_ORANGE, 999, 646, 0); 
-            init_color(COLOR_L_BLUE, 000, 000, 999); 
-            init_color(COLOR_L_YELLOW, 777, 777, 000);    
-            
-            init_pair(PURPLE, COLOR_PURPLE, COLOR_BLACK);
-            init_pair(ORANGE, COLOR_ORANGE, COLOR_BLACK);
-            init_pair(L_BLUE, COLOR_L_BLUE, COLOR_BLACK);
-            init_pair(L_YELLOW, COLOR_L_YELLOW, COLOR_BLACK);
-        } 
-
-        init_pair(STANDARD, COLOR_WHITE, COLOR_BLACK);
-        init_pair(BLUE, COLOR_BLUE, COLOR_BLACK);
-        init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);
-        init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
-        init_pair(RED, COLOR_RED, COLOR_BLACK);
-        init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);
-
-        bkgd(COLOR_PAIR(STANDARD));
-    }
-}
+// DONE: game loop made into a separate function
+// DONE: fixed bug with tetrominoes not printing at the start of the game.
+// DONE: removed unnecessary variables from the tetris_grid class.
 
 // FOR DEBUGGING
 void printInfo(tetris_grid & grid){
@@ -76,99 +48,93 @@ void printInfo(tetris_grid & grid){
     move(y += 2, 0);
     clrtoeol();
     printw("tet_salength: %i", grid.curr_tet->salength);
-
-    refresh();
 }
 
 int main(){
 
-    initscr();
-    WINDOW* win;
-    tetris_grid tetris;
-    win = newwin(43, 100, 8, 2);
-    refresh();
-    wrefresh(win);
+    terminalInit();
+    tetris_grid tetris(9, 3);
+    playTetris(tetris);
 
-    terminal_init();
+    endwin();
+}
 
-    refresh();
-    printInfo(tetris);
-    getch();
+void playTetris(tetris_grid & grid){
 
-    tetris.setCurrTetrominoOnGrid();
-    
-    printTetrisFrame(tetris);
-
-    tetris.printGrid(win);
-    getch();
+    grid.setCurrTetrominoOnGrid();
+    printTetrisFrame(grid);
+    grid.printGrid();
 
     int in;
-    keypad(win, true);
     while(1){
-        in = wgetch(win);
+        in = getch();
         switch(in){
-            //quit game
+            
             case 'q':
                 endwin();
                 exit(0);
-            //movement
+            
             case 'a':
-                tetris.rotateTetromino(CCWISE);
-                tetris.refreshTetromino(win);
+                grid.rotateTetromino(CCWISE);
+                grid.printGrid();
                 break;
 
             case 'd':
-                tetris.rotateTetromino(CWISE);
-                tetris.refreshTetromino(win);
+                grid.rotateTetromino(CWISE);
+                grid.printGrid();
                 break;
 
             case 'g':
-                tetris.generateNextTetromino();
-                if (!tetris.setCurrTetrominoOnGrid()){
+                grid.generateNextTetromino();
+                if (!grid.setCurrTetrominoOnGrid()){
                     endwin();
                     exit(0);
                 }
-                tetris.refreshTetromino(win);
+                grid.printGrid();
                 break;
 
             case 'w':
-                tetris.stackWipeCompleteRows(win);
-                tetris.stackRowsShift(win);
-                tetris.printGrid(win);
+                grid.stackWipeCompleteRows();
+                grid.stackRowsShift();
+                grid.printGrid();
                 break;
 
+            case 's':
+                grid.dropTetromino();
+                grid.printGrid();
+
             case 'p':
-                tetris.printGrid(win);
+                grid.printGrid();
                 break;
 
             case KEY_UP:    
-                tetris.shiftTetromino(-1, 0);
-                tetris.refreshTetromino(win);
+                grid.shiftTetromino(-1, 0);
+                grid.printGrid();
                 break;
 
             case KEY_DOWN:
-                tetris.shiftTetromino(1, 0);
-                tetris.refreshTetromino(win);
+                grid.shiftTetromino(1, 0);
+                grid.printGrid();
                 break;
 
             case KEY_LEFT:
-                tetris.shiftTetromino(0, -1);
-                tetris.refreshTetromino(win);
+                grid.shiftTetromino(0, -1);
+                grid.printGrid();
                 break;
 
             case KEY_RIGHT:
-                tetris.shiftTetromino(0, 1);
-                tetris.refreshTetromino(win);
+                grid.shiftTetromino(0, 1);
+                grid.printGrid();
                 break;
             
         //open menu
         //play/pause game
         }
 
-        printInfo(tetris);
+        printInfo(grid);
+        refresh();
     }
-    
-    endwin();
+
 }
 
 void printTetrisFrame(tetris_grid &grid){
@@ -264,5 +230,41 @@ void printTetrisFrame(tetris_grid &grid){
     for (int i = 0; i < 3; i++){
         printw(base_row.c_str());
         printw(post_base_row_buffer.c_str());
+    }
+
+    refresh();
+}
+
+void terminalInit(){
+
+    initscr();
+    curs_set(0);
+    noecho();
+    keypad(stdscr, true);
+
+    if (has_colors()){
+        start_color();
+
+        if (can_change_color()){
+            
+            init_color(COLOR_PURPLE, 626, 125, 940);
+            init_color(COLOR_ORANGE, 999, 646, 0); 
+            init_color(COLOR_L_BLUE, 000, 000, 999); 
+            init_color(COLOR_L_YELLOW, 777, 777, 000);    
+            
+            init_pair(PURPLE, COLOR_PURPLE, COLOR_BLACK);
+            init_pair(ORANGE, COLOR_ORANGE, COLOR_BLACK);
+            init_pair(L_BLUE, COLOR_L_BLUE, COLOR_BLACK);
+            init_pair(L_YELLOW, COLOR_L_YELLOW, COLOR_BLACK);
+        } 
+
+        init_pair(STANDARD, COLOR_WHITE, COLOR_BLACK);
+        init_pair(BLUE, COLOR_BLUE, COLOR_BLACK);
+        init_pair(CYAN, COLOR_CYAN, COLOR_BLACK);
+        init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
+        init_pair(RED, COLOR_RED, COLOR_BLACK);
+        init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);
+
+        bkgd(COLOR_PAIR(STANDARD));
     }
 }
