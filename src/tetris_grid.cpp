@@ -1,7 +1,7 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last Edited: 12/26/2024
+// Last Edited: 12/28/2024
 // tetris_grid.cpp
 
 // This file includes all of the implementation for the tetromino class and
@@ -11,7 +11,6 @@
 #include <ncurses.h>
 
 #include "tetris_grid.h"
-#include "tetris_stack.h"
 #include "tetris_tetromino.h"
 
 // TO DO: create a tetris settings class or struct that has all of the tetris

@@ -1,7 +1,7 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last Edited: 12/24/2024
+// Last Edited: 12/28/2024
 // tetris_grid.h
 
 #ifndef _TETROMINOS_H
@@ -13,7 +13,6 @@
 #include <random>
 #include "tetris_types.h"
 #include "tetris_tetromino.h"
-#include "tetris_stack.h"
 
 // TETRIS_GRID CLASS ==========================================================
 

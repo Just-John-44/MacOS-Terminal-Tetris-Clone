@@ -1,31 +1,30 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last edited: 12/26/2024
+// Last edited: 12/28/2024
 // test.cpp
 
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include "tetris_grid.h"
 
 void printTetrisFrame(tetris_grid &);
 void terminalInit();
 void playTetris(tetris_grid &grid);
+
 // TO DO: create a more reliable way to initialize the terminal in 
-//        terminal_init so it's changes will affect all file translations.
+//        terminal_init so it's changes will affect all translation units.
+//        I dont want initscr to be called multiple times, for example.
 // TO DO: add the music functions
 // TO DO: add the menu functions
-// TO DO: wrap some of the functions at the beginning fo the program to
-//        make what is happening more understandable.
-// TO DO: remove the tetris_stack files because there is a bunch of unused code
-// TO DO: integrate tetris' window into its own class
-// TO DO: prompt the user to expand the terminal window to a specific size if it is
-//        too small to print the window
 // TO DO: create a separate window for the score
 
-// DONE: game loop made into a separate function
-// DONE: fixed bug with tetrominoes not printing at the start of the game.
-// DONE: removed unnecessary variables from the tetris_grid class.
+// DONE: added terminal resizing message.
+// DONE: introduced timing.
+// DONE: moved the square struct to the tetris_types files
+// DONE: changed makefile to work with the differences
 
 // FOR DEBUGGING
 void printInfo(tetris_grid & grid){
@@ -50,11 +49,20 @@ void printInfo(tetris_grid & grid){
     printw("tet_salength: %i", grid.curr_tet->salength);
 }
 
+const int MIN_TERM_LENGTH = 80;
+const int MIN_TERM_HEIGHT = 50;
+const int GRID_START_Y = 9;
+const int GRID_START_X = 3;
+const int SCORE_START_Y;
+const int SCORE_START_X;
+
 int main(){
 
-    terminalInit();
-    tetris_grid tetris(9, 3);
-    playTetris(tetris);
+    initTerminal();
+
+    tetris_grid grid(GRID_START_Y, GRID_START_X);
+
+    playTetris(grid);
 
     endwin();
 }
@@ -235,7 +243,7 @@ void printTetrisFrame(tetris_grid &grid){
     refresh();
 }
 
-void terminalInit(){
+void initTerminal(){
 
     initscr();
     curs_set(0);
@@ -266,5 +274,25 @@ void terminalInit(){
         init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);
 
         bkgd(COLOR_PAIR(STANDARD));
+    }
+
+    int max_y, max_x;
+    getmaxyx(stdscr, max_y, max_x);
+    while (max_y < MIN_TERM_HEIGHT ||
+           max_x < MIN_TERM_LENGTH)
+    {
+        clear();
+        move(max_y / 2, max_x / 2 - 26);
+        printw("Expand the terminal to at least %i high and %i wide.",
+               MIN_TERM_HEIGHT, MIN_TERM_LENGTH);
+
+        move(max_y / 2 + 1, max_x / 2 - 17);
+        printw("Current size: %i high and %i wide.",
+               max_y, max_x);
+
+        refresh();
+        
+        getmaxyx(stdscr, max_y, max_x);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }

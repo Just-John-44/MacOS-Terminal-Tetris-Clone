@@ -42,4 +42,21 @@ enum direction {
     CCWISE
 };
 
+// SQUARE =====================================================================
+
+struct square {
+    color_id s_color;  
+    square_type s_type;
+
+    square(){
+        s_color = STANDARD;
+        s_type = EMPTY_SQR;
+    }
+
+    void setEmpty(){
+        s_color = STANDARD;
+        s_type = EMPTY_SQR;
+    }
+};
+
 #endif
