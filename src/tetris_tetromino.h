@@ -5,8 +5,7 @@
 
 // John Wesley Thompson
 // Created: 8/10/2024
-// Completed:
-// Last Edited: 10/24/2024
+// Last Edited: 12/30/2024
 // tetris_tetromino.h
 
 // DATA =======================================================================
@@ -37,15 +36,10 @@ public:
     // Operators
     tetromino& operator = (const tetromino&);
 
-    // Accessors
-    // const int* shapeArray() const;
-    // int shapeStride() const;
-    // color_id color() const;
-
     // Functions
     void rotate(direction);
-    // bool canRotate(direction);
     int shapeAt(int, int);
+    void resetRotation();
 
     int current_rotation;  // this holds the x index of the top left corner of 
                            // the current rotation.
@@ -65,11 +59,10 @@ private:
 
     int** shape_arr; // the tetromino's shape array
     
-    // Functions
     void calcTopandBottomSquare();
     void calcLeftandRightSquare();
-    template<int rows, int cols>
     // original for 2D arrays
+    template<int rows, int cols>
     void setShapeArray(const int(&)[rows][cols]);
     // overload for int**
     void setShapeArray(int**, int, int);

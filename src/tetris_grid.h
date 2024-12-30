@@ -1,7 +1,6 @@
 // John Wesley Thompson
 // Created: 8/10/2024
-// Completed:
-// Last Edited: 12/28/2024
+// Last Edited: 12/30/2024
 // tetris_grid.h
 
 #ifndef _TETROMINOS_H
@@ -16,17 +15,19 @@
 
 // TETRIS_GRID CLASS ==========================================================
 
+// These are the normal tetris dimensions.
+const int DEFAULT_HEIGHT = 20;
+const int DEFAULT_LENGTH = 10;
+
 class tetris_grid {
 public:
 
-    int GRID_HEIGHT;
-    int GRID_LENGTH;
+    int height;
+    int length;
 
     tetromino* curr_tet;
     tetromino* next_tet;
     std::vector<std::vector<square> > grid;
-    
-    WINDOW* win;
      
     int tet_y_pos,
         tet_x_pos;     
@@ -42,15 +43,14 @@ public:
         tetromino(O_TETROMINO)
     };
 
-    tetris_grid(int y = 0, int x = 0);
-    ~tetris_grid();
-    void printGrid();
+    tetris_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
+    void printGrid(WINDOW* win);
     void generateNextTetromino();
     bool setCurrTetrominoOnGrid();
     bool shiftTetromino(int, int); 
     bool rotateTetromino(direction);
     void dropTetromino();
-    void stackWipeCompleteRows();
+    int stackWipeCompleteRows();
     void stackRowsShift();
 
 private:

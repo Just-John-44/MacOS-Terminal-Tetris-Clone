@@ -1,7 +1,6 @@
 // John Wesley Thompson
 // Created: 8/10/2024
-// Completed:
-// Last Edited: 10/24/2024
+// Last Edited: 12/30/2024
 // tetris_tetromino.h
 
 
@@ -76,7 +75,7 @@ tetromino::tetromino(tetromino_type tet_t){
             salength = 12;
             setShapeArray(J_TETROMINO_ARR);
             
-            color = BLUE;
+            color = L_BLUE;
             break;
 
         case T_TETROMINO: 
@@ -116,7 +115,7 @@ tetromino::tetromino(tetromino_type tet_t){
             salength = 12;
             setShapeArray(O_TETROMINO_ARR);
             
-            color = YELLOW;
+            color = L_YELLOW;
             break;
     }
 
@@ -169,30 +168,10 @@ tetromino& tetromino::operator = (const tetromino& rhs){
     return *this;
 }
 
-// GETTERS
-
-// const int* tetromino::shapeArray() const {
-//     return shape_arr;
-// }
-
-// int tetromino::shapeStride() const {
-//     return sstride;
-// }
-
-// color_id tetromino::color() const {
-//     return color;
-// }
-
 void tetromino::rotate(direction rotation_dir){
 
     if (type == O_TETROMINO) // O_TETROMINO doesn't rotate
         return;
-
-    // if user entered an ambiguous direction to rotate, specify which direction to rotate.
-    if (rotation_dir == UP || rotation_dir == LEFT) 
-        rotation_dir = CCWISE;
-    else if (rotation_dir == DOWN || rotation_dir == RIGHT) 
-        rotation_dir = CWISE;
 
     // Assign next rotation offset
     if (rotation_dir == CWISE){
@@ -229,204 +208,18 @@ int tetromino::shapeAt(int y, int x){
     return shape_arr[y][x + current_rotation];
     
 }
-// bool tetromino::canRotate(direction dir){
-    
-//     if (m_curr_arr_start == O_TETROMINO_ARR){ // O tetromino doesn't rotate
-//         return false;
-//     }
 
-//     square grid_square_val;     // used to make code more readable in the 
-//     int prev_square_val;        // following loops
-//     int curr_square_val;        //
+void tetromino::resetRotation(){
 
-//     const int* rotation_1;  // This the rotation after the start of the array,
-//     const int* rotation_2;  //    so m_curr_arr_start is like rotation_0.
-//     const int* rotation_3;
-//     rotation_1 = m_curr_arr_start + (m_curr_shape_stride);
-//     rotation_2 = m_curr_arr_start + (m_curr_shape_stride * 2);
-//     rotation_3 = m_curr_arr_start + (m_curr_shape_stride * 3);
-
-//     const int* prev_rotation_offset = m_curr_rotation_offset;
-
-
-//     if (dir == UP || dir == DOWN || dir == LEFT || dir == RIGHT)
-//         return false;
-
-//     if (dir == CWISE){
-//         if (m_curr_rotation_offset == rotation_3){
-//             m_curr_rotation_offset = m_curr_arr_start;
-//         } else {
-//             m_curr_rotation_offset += m_curr_shape_stride;
-//         }
-//     } else { // if dir == CCWISE
-//         if (m_curr_rotation_offset == m_curr_arr_start){
-//             m_curr_rotation_offset = rotation_3;
-//         } else {
-//             m_curr_rotation_offset -= m_curr_shape_stride;
-//         }
-//     }
-
-
-//     // find if there is a collision with the next rotation offset
-//     bool collision = false;
-//     for (int i = 0; i < m_curr_shape_stride; i++){
-//         for (int j = 0; j < m_curr_shape_stride; j++){
-
-//             prev_square_val = *(prev_rotation_offset + j + i * m_curr_shape_arr_len);
-//             curr_square_val = *(m_curr_rotation_offset + j + i * m_curr_shape_arr_len);
-
-//             if (!inBounds(tet_y_pos + i, tet_x_pos + j)){
-//                 if (curr_square_val != EMPTY_SQR)
-//                     collision = true; // The tetromino is colliding with a wall.
-//                 continue;
-//             }
-
-//             grid_square_val = grid.at(tet_y_pos + i).at(tet_x_pos + j);
-
-//             if (curr_square_val != EMPTY_SQR && prev_square_val == EMPTY_SQR &&   // if the tetromino is 
-//                 grid_square_val.s_type != EMPTY_SQR)                              // colliding with
-//             {                                                                     // another tetromino
-//                 collision = true;
-//             }
-
-//             if (collision) break;
-//         }
-//         if (collision) break;
-//     }
-
-//     if (!collision){
-//         m_curr_rotation_offset = prev_rotation_offset;
-//         return true;
-//     }
-
-//     bool can_rotate = true;
-//     if (m_curr_arr_start == L_TETROMINO_ARR ||
-//         m_curr_arr_start == J_TETROMINO_ARR ||
-//         m_curr_arr_start == T_TETROMINO_ARR){
-        
-//         if (dir == CWISE){
-//             if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-
-//         } else {// dir == CCWISE
-
-//             if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-//             // if (canShiftRight(1)){
-//             //     blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             // } else if (canShiftLeft(1)){
-//             //     blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             // } else if (canShiftUp(1)){
-//             //     blindShiftTetromino(prev_rotation_offset,1, UP);
-//             // } else {
-//             //     can_rotate = false;
-//             // } 
-//         }
-//
-//     } else if (m_curr_arr_start == I_TETROMINO_ARR){
-
-//         if ((m_curr_rotation_offset == m_curr_arr_start ||
-//             m_curr_rotation_offset == rotation_2) && dir == CWISE)
-//         {
-//             if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-            
-//         } else if ((m_curr_rotation_offset == m_curr_arr_start ||
-//                    m_curr_rotation_offset == rotation_2) && dir == CCWISE)
-//         {
-//             if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-
-//         } else if ((m_curr_rotation_offset == rotation_1 ||
-//                    m_curr_rotation_offset == rotation_3) && dir == CWISE)
-//         {
-//             if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-
-//         } else if ((m_curr_rotation_offset == rotation_1 ||
-//                    m_curr_rotation_offset == rotation_3) && dir == CCWISE)
-//         {
-//             if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             } 
-//         }
-
-//     } else {    // m_curr_arr_start == S_TETROMINO_ARR ||
-//                 // m_curr_arr_start == Z_TETROMINO_ARR
-//         if (m_curr_rotation_offset == m_curr_arr_start || 
-//             m_curr_rotation_offset == rotation_2)
-//         {
-//             if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             }
-
-//         } else {// next rotation offset == rotation 1 or 3
-//             if (canShiftLeft(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, LEFT);
-//             } else if (canShiftRight(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, RIGHT);
-//             } else if (canShiftUp(1)){
-//                 blindShiftTetromino(prev_rotation_offset,1, UP);
-//             } else {
-//                 can_rotate = false;
-//             }
-//         }
-//     }
-
-//     m_curr_rotation_offset = prev_rotation_offset;
-    
-//     return can_rotate;
-// }
-
+    current_rotation = 0;
+    calcTopandBottomSquare();
+    calcLeftandRightSquare();
+}
 
 // PRIVATE ====================================================================
+
+// TO DO: combine the calc square functions into 1 because im pretty sure
+//        they're not used separately.
 
 // The next two functions are called after the shape array of the tetromino is
 // modified. Its purpose is to make sure that the tetromino's topmost,

@@ -1,30 +1,64 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last edited: 12/28/2024
+// Last edited: 12/30/2024
 // test.cpp
 
 
 #include <iostream>
+#include <ncurses.h>
 #include <thread>
 #include <chrono>
 #include "tetris_grid.h"
+#include "tetris_tetromino.h"
+
+
+// This struct is used to keep track of all of the window positions and sizes.
+struct window_data {
+    WINDOW* grid_win;
+    WINDOW* score_win;
+    WINDOW* tetromino_win;
+
+    int grid_win_start_y;
+    int grid_win_start_x;
+    int grid_win_height;
+    int grid_win_length;
+
+    int score_win_start_y;
+    int score_win_start_x;
+    int score_win_height;
+    int score_win_length;
+
+    int tetromino_win_start_y;
+    int tetromino_win_start_x;
+    int tetromino_win_height;
+    int tetromino_win_length;
+};
 
 void printTetrisFrame(tetris_grid &);
-void terminalInit();
-void playTetris(tetris_grid &grid);
+void initTerminal();
+void initWindowData(window_data &, tetris_grid &);
+void printTerminalSizeMessage(tetris_grid &);
+void printScore(window_data &, int);
+void printNextTetromino(window_data &, tetromino*);
+void playTetris(window_data &, tetris_grid &);
 
 // TO DO: create a more reliable way to initialize the terminal in 
 //        terminal_init so it's changes will affect all translation units.
 //        I dont want initscr to be called multiple times, for example.
 // TO DO: add the music functions
 // TO DO: add the menu functions
-// TO DO: create a separate window for the score
+// TO DO: make the window sizes dynamic
 
-// DONE: added terminal resizing message.
-// DONE: introduced timing.
-// DONE: moved the square struct to the tetris_types files
-// DONE: changed makefile to work with the differences
+// DONE: moved the terminal size message into its own function
+// DONE: made a struct for managing all of the window data
+// DONE: moved the tetris_grid window out of the tetris_grid struct
+// DONE: renamed some of the tetris_grid variables
+// DONE: created a window for the game score and the next tetromino
+// DONE: made a simple system for the game score and completed the next tetromino printing function.
+// DONE: modified the row wipe function to return the number of rows wiped
+// DONE: improved the code size in the playTetris function.
+// DONE: fixed incorrect starting rotation for newly generated tetrominoes.
 
 // FOR DEBUGGING
 void printInfo(tetris_grid & grid){
@@ -48,30 +82,35 @@ void printInfo(tetris_grid & grid){
     clrtoeol();
     printw("tet_salength: %i", grid.curr_tet->salength);
 }
-
-const int MIN_TERM_LENGTH = 80;
-const int MIN_TERM_HEIGHT = 50;
-const int GRID_START_Y = 9;
-const int GRID_START_X = 3;
-const int SCORE_START_Y;
-const int SCORE_START_X;
+//
 
 int main(){
 
     initTerminal();
 
-    tetris_grid grid(GRID_START_Y, GRID_START_X);
+    tetris_grid grid(30, 20);
+    window_data win_data;
+    initWindowData(win_data, grid);
 
-    playTetris(grid);
+    printTerminalSizeMessage(grid);
+
+    playTetris(win_data, grid);
 
     endwin();
 }
 
-void playTetris(tetris_grid & grid){
+// playTetris contains the entire game loop for the tetris game.
+// Input: the window_data struct for printing, and the tetris grid for playing
+//        the game
+void playTetris(window_data &wd, tetris_grid &grid){
+
+    int score = 0;
 
     grid.setCurrTetrominoOnGrid();
     printTetrisFrame(grid);
-    grid.printGrid();
+    grid.printGrid(wd.grid_win);
+    printScore(wd, score);
+    printNextTetromino(wd, grid.next_tet);
 
     int in;
     while(1){
@@ -84,12 +123,10 @@ void playTetris(tetris_grid & grid){
             
             case 'a':
                 grid.rotateTetromino(CCWISE);
-                grid.printGrid();
                 break;
 
             case 'd':
                 grid.rotateTetromino(CWISE);
-                grid.printGrid();
                 break;
 
             case 'g':
@@ -98,70 +135,68 @@ void playTetris(tetris_grid & grid){
                     endwin();
                     exit(0);
                 }
-                grid.printGrid();
+                printNextTetromino(wd, grid.next_tet);
                 break;
 
             case 'w':
-                grid.stackWipeCompleteRows();
+                score += 100 * grid.stackWipeCompleteRows();
                 grid.stackRowsShift();
-                grid.printGrid();
+                printScore(wd, score);
                 break;
 
             case 's':
                 grid.dropTetromino();
-                grid.printGrid();
 
             case 'p':
-                grid.printGrid();
                 break;
 
             case KEY_UP:    
                 grid.shiftTetromino(-1, 0);
-                grid.printGrid();
                 break;
 
             case KEY_DOWN:
                 grid.shiftTetromino(1, 0);
-                grid.printGrid();
                 break;
 
             case KEY_LEFT:
                 grid.shiftTetromino(0, -1);
-                grid.printGrid();
                 break;
 
             case KEY_RIGHT:
                 grid.shiftTetromino(0, 1);
-                grid.printGrid();
                 break;
             
         //open menu
         //play/pause game
         }
 
+        grid.printGrid(wd.grid_win);
         printInfo(grid);
         refresh();
     }
 
 }
 
+// printTetrisFrame prints the tetris title, and a border for the tetris grid,
+// the score window, and the next tetromino window.
+// Input: a tetris_grid struct to the grid size information from
 void printTetrisFrame(tetris_grid &grid){
 
     // the rows of the tetris frame that come after the title
     std::string title_base = "[X]";
-    for (int i = 0; i < grid.GRID_LENGTH; i++){
+    for (int i = 0; i < grid.length; i++){
         title_base += "[ ]";
     }
     title_base += "[X]";
 
     std::string grid_row = "| |";
-    for (int i = 0; i < grid.GRID_LENGTH; i++){
+    for (int i = 0; i < grid.length; i++){
         grid_row += "   ";
     }
     grid_row += "| |"; 
     
     std::string base_row = "[X]";
-    for (int i = 0; i < grid.GRID_LENGTH; i++){
+    for (int i = 0; i < grid.length; i++){
         base_row += "[X]";
     }
     base_row += "[X]"; 
@@ -224,10 +259,10 @@ void printTetrisFrame(tetris_grid &grid){
     printw(title_base.c_str());
     printw(post_title_base_buffer.c_str());
     
-    for (int i = 0; i < grid.GRID_HEIGHT; i++){
+    for (int i = 0; i < grid.height; i++){
         printw(grid_row.c_str());
 
-        if (i == 0 || i == grid.GRID_HEIGHT - 1){
+        if (i == 0 || i == grid.height - 1){
             printw(post_grid_row_buffer1.c_str());
         } else {
             printw(post_grid_row_buffer2.c_str());
@@ -243,6 +278,7 @@ void printTetrisFrame(tetris_grid &grid){
     refresh();
 }
 
+//
 void initTerminal(){
 
     initscr();
@@ -275,16 +311,26 @@ void initTerminal(){
 
         bkgd(COLOR_PAIR(STANDARD));
     }
+}
+
+// printTerminalSizeMessage prompts the user at the beginning of the program to
+// expand the terminal window if it is too small to play the game.
+// Input: a tetris_grid struct to the grid size information from
+void printTerminalSizeMessage(tetris_grid &grid){
 
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
-    while (max_y < MIN_TERM_HEIGHT ||
-           max_x < MIN_TERM_LENGTH)
+
+    int min_term_height = grid.height + 30;
+    int min_term_length = grid.length * 3 + 30;
+
+    while (max_y < min_term_height ||
+           max_x < min_term_length)
     {
         clear();
         move(max_y / 2, max_x / 2 - 26);
         printw("Expand the terminal to at least %i high and %i wide.",
-               MIN_TERM_HEIGHT, MIN_TERM_LENGTH);
+               min_term_height, min_term_length);
 
         move(max_y / 2 + 1, max_x / 2 - 17);
         printw("Current size: %i high and %i wide.",
@@ -296,3 +342,82 @@ void initTerminal(){
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
+
+// printScore prints the tetris game score to the right side of the grid.
+// Input: the window data structure and a score to print
+void printScore(window_data &wd, int score){
+
+    wmove(wd.score_win, 0, 0);
+    wclear(wd.score_win);
+    wprintw(wd.score_win, "  SCORE\n -------\n  %i", score);
+    wrefresh(wd.score_win);
+}
+
+// printNextTetromino prints the next tetromino on the right side of the grid.
+// Input: the window data structure and a tetromino pointer
+void printNextTetromino(window_data &wd, tetromino* tet){
+
+    wmove(wd.tetromino_win, 0, 0);
+    wclear(wd.tetromino_win);
+
+    wprintw(wd.tetromino_win, " NEXT_UP\n -------\n");
+
+    wattron(wd.tetromino_win, COLOR_PAIR(tet->color));
+    for (int i = 0; i < tet->sstride; i++){
+
+        if (tet->type == I_TETROMINO){
+            wmove(wd.tetromino_win, i + 3, 1);
+        } else {
+            wmove(wd.tetromino_win, i + 3, 2);
+        }
+
+        for (int j = 0; j < tet->sstride; j++){
+        
+            if (tet->shapeAt(i, j) == EMPTY_SQR){
+                wprintw(wd.tetromino_win, "  ");
+            } else {
+                wprintw(wd.tetromino_win, "X ");
+            }
+        }
+    }
+    wattroff(wd.tetromino_win, COLOR_PAIR(tet->color));
+    wrefresh(wd.tetromino_win);
+}
+
+// initWindowData initializes the window data struct with all windows' location
+// and sizes based on a tetris grid.
+// Input: the window data structure to be initialized, and a tetris grid to 
+// base all of the window locations off of.
+void initWindowData(window_data &wd, tetris_grid &grid){
+
+    wd.grid_win_start_y = 9;
+    wd.grid_win_start_x = 3;
+    wd.grid_win_height = grid.height;
+    wd.grid_win_length = grid.length;
+
+    wd.score_win_start_y = wd.grid_win_start_y + 1;
+    wd.score_win_start_x = wd.grid_win_start_x + wd.grid_win_length * 3 + 3;
+    wd.score_win_height = 5;
+    wd.score_win_length = 9;
+
+    wd.tetromino_win_start_y = wd.score_win_start_y + wd.score_win_height;
+    wd.tetromino_win_start_x = wd.score_win_start_x;
+    wd.tetromino_win_height = wd.grid_win_height - wd.score_win_height - 2;
+    wd.tetromino_win_length = wd.score_win_length;
+
+    wd.grid_win = newwin(wd.grid_win_height, wd.grid_win_length * 3, 
+                         wd.grid_win_start_y, wd.grid_win_start_x);
+
+    wd.score_win = newwin(wd.score_win_height, wd.score_win_length, 
+                         wd.score_win_start_y, wd.score_win_start_x);
+
+    wd.tetromino_win = newwin(wd.tetromino_win_height, wd.tetromino_win_length, 
+                         wd.tetromino_win_start_y, wd.tetromino_win_start_x);
+    refresh();
+}
+
+// void updateWindowData(window_data &wd){
+
+
+
+// }

@@ -1,7 +1,6 @@
 // John Wesley Thompson
 // Created: 8/10/2024
-// Completed:
-// Last Edited: 12/28/2024
+// Last Edited: 12/30/2024
 // tetris_grid.cpp
 
 // This file includes all of the implementation for the tetromino class and
@@ -13,16 +12,11 @@
 #include "tetris_grid.h"
 #include "tetris_tetromino.h"
 
-// TO DO: create a tetris settings class or struct that has all of the tetris
-//        setting data as well as getters and setters
 // TO DO: improve naming.
 // TO DO: make appropriate functions pass by reference and const
 // TO DO: make the terminal print in only black and white if it doesn't support colors.
 // TO DO: I should probably make the tetromino array square types instead of ints
-// TO DO: rename GRID_LENGTH and GRID_HEIGHT
-// TO DO: improve the random block generation.
-// TO DO: fix strange bug where at the beginning of the program, the tetromino isn't
-//        printed.
+// TO DO: improve the random block generation. implement the bag system.
 
 // ============================================================================
 // TETRIS_GRID CLASS 
@@ -30,8 +24,8 @@
 
 tetris_grid::tetris_grid(int y, int x){
 
-    GRID_HEIGHT = 20;
-    GRID_LENGTH = 10;
+    height = y;
+    length = x;
 
     gen = std::mt19937(rd());
     dist = std::uniform_int_distribution<>(0, 6);
@@ -42,34 +36,27 @@ tetris_grid::tetris_grid(int y, int x){
     // set non garbage values for the position of the tetromino on the grid
     tet_y_pos = tet_x_pos = 0;
 
-    win = newwin(GRID_HEIGHT, GRID_LENGTH * 3, y, x);
-    refresh();
-
     // This resizes the grid to the default values: a height of 20 and
     // a length of 10.
-    grid.resize(GRID_HEIGHT);
-    for (int i = 0; i < GRID_HEIGHT; i++){
-        grid.at(i).resize(GRID_LENGTH);
+    grid.resize(height);
+    for (int i = 0; i < height; i++){
+        grid.at(i).resize(length);
     }
-}
-
-tetris_grid::~tetris_grid(){
-    delwin(win);
 }
 
 // TERMINAL OUTPUT ============================================================
 
-void tetris_grid::printGrid(){
+void tetris_grid::printGrid(WINDOW* win){
     // int win_height, win_length;
     // getmaxyx(win, win_height, win_length);
 
-    // if (win_height > GRID_HEIGHT + 2 || 
-    //     win_length > GRID_LENGTH * 3 + 2)
+    // if (win_height > height + 2 || 
+    //     win_length > length * 3 + 2)
     //     return;
     
     wmove(win, 0, 0);
-    for (int i = 0; i < GRID_HEIGHT; i++){  
-        for (int j = 0; j < GRID_LENGTH; j++){    
+    for (int i = 0; i < height; i++){  
+        for (int j = 0; j < length; j++){    
 
             if (grid.at(i).at(j).s_type == EMPTY_SQR){
                 wprintw(win, "   ");   
@@ -94,12 +81,13 @@ void tetris_grid::printGrid(){
 // TETRIS STACK MANIPULATION ==================================================
 
 //
-void tetris_grid::stackWipeCompleteRows(){ 
+int tetris_grid::stackWipeCompleteRows(){ 
     bool row_full;
-    for (int i = 0; i < GRID_HEIGHT; i++){
+    int wiped_row_ct = 0;
+    for (int i = 0; i < height; i++){
 
         row_full = true;
-        for (int j = 0; j < GRID_LENGTH; j++){
+        for (int j = 0; j < length; j++){
             if (grid.at(i).at(j).s_type == EMPTY_SQR){
                 row_full = false;
                 break;
@@ -110,22 +98,25 @@ void tetris_grid::stackWipeCompleteRows(){
             continue;
 
         // If the row is full, wipe it.
-        for (int j = 0; j < GRID_LENGTH; j++){
+        for (int j = 0; j < length; j++){
             grid.at(i).at(j).setEmpty();
         }
+        wiped_row_ct++;
     }
+
+    return wiped_row_ct;
 }
 
 //
 void tetris_grid::stackRowsShift(){
-    bool unempty_row_arr[GRID_HEIGHT];
+    bool unempty_row_arr[height];
     int unempty_row_count = 0;
 
     bool row_empty;
     int lowest_empty_row_idx = 0;
-    for (int i = 0; i < GRID_HEIGHT; i++){
+    for (int i = 0; i < height; i++){
         row_empty = true;
-        for (int j = 0; j < GRID_LENGTH; j++){
+        for (int j = 0; j < length; j++){
             if (grid.at(i).at(j).s_type != EMPTY_SQR){
                 row_empty = false;
                 break;
@@ -144,12 +135,12 @@ void tetris_grid::stackRowsShift(){
 
 
     bool floating = false;
-    for (int i = GRID_HEIGHT - 1; i >= 0; i--){
+    for (int i = height - 1; i >= 0; i--){
         if (unempty_row_arr[i] == 0){
             floating = true;
 
         } else if (unempty_row_arr[i] == 1 && floating){
-            for (int j = 0; j < GRID_LENGTH; j++){
+            for (int j = 0; j < length; j++){
                 grid.at(lowest_empty_row_idx).at(j).s_color = grid.at(i).at(j).s_color;
                 grid.at(lowest_empty_row_idx).at(j).s_type = grid.at(i).at(j).s_type;
                 grid.at(i).at(j).setEmpty();
@@ -414,9 +405,9 @@ bool tetris_grid::colliding(){
     
     // Return true if the tetris block colliding with a border.
     if (tet_y_pos + curr_tet->topmost_sqr < 0 || 
-        tet_y_pos + curr_tet->bottommost_sqr >= GRID_HEIGHT ||
+        tet_y_pos + curr_tet->bottommost_sqr >= height ||
         tet_x_pos + curr_tet->leftmost_sqr < 0 || 
-        tet_x_pos + curr_tet->rightmost_sqr >= GRID_LENGTH)
+        tet_x_pos + curr_tet->rightmost_sqr >= length)
     {
         return true;
     }
@@ -469,8 +460,11 @@ void tetris_grid::placeTetromino(){
     }
 }
 
-//
+// generateNextTetromino sets the current tetromino pointer equal to the next
+// tetromino pointer and assigns the next tetromino pointer to a random
+// tetromino.
 void tetris_grid::generateNextTetromino(){
+    curr_tet->resetRotation();
     curr_tet = next_tet;
     next_tet = &tetris_tetrominoes[dist(gen)];
 }
@@ -478,7 +472,7 @@ void tetris_grid::generateNextTetromino(){
 //
 bool tetris_grid::setCurrTetrominoOnGrid(){
 
-    tet_x_pos = (GRID_LENGTH - curr_tet->sstride) / 2;
+    tet_x_pos = (length - curr_tet->sstride) / 2;
     tet_y_pos = -curr_tet->topmost_sqr; // this sets it to the highest value in the 
                                         // shape array if it were to be placed onto 
                                         // the grid with the highest square of the
