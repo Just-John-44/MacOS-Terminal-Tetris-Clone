@@ -15,8 +15,7 @@
 // TO DO: improve naming.
 // TO DO: make appropriate functions pass by reference and const
 // TO DO: make the terminal print in only black and white if it doesn't support colors.
-// TO DO: I should probably make the tetromino array square types instead of ints
-// TO DO: improve the random block generation. implement the bag system.
+
 
 // ============================================================================
 // TETRIS_GRID CLASS 
@@ -27,11 +26,8 @@ tetris_grid::tetris_grid(int y, int x){
     height = y;
     length = x;
 
-    gen = std::mt19937(rd());
-    dist = std::uniform_int_distribution<>(0, 6);
-
-    curr_tet = &tetris_tetrominoes[dist(gen)];
-    next_tet = &tetris_tetrominoes[dist(gen)];
+    curr_tet = tetrominoes.select();
+    next_tet = tetrominoes.select();
 
     // set non garbage values for the position of the tetromino on the grid
     tet_y_pos = tet_x_pos = 0;
@@ -466,7 +462,12 @@ void tetris_grid::placeTetromino(){
 void tetris_grid::generateNextTetromino(){
     curr_tet->resetRotation();
     curr_tet = next_tet;
-    next_tet = &tetris_tetrominoes[dist(gen)];
+    
+    if (tetrominoes.empty()){
+        tetrominoes.refill();
+    }
+    
+    next_tet = tetrominoes.select();
 }
 
 //

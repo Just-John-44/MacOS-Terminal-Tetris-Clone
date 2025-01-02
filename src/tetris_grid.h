@@ -9,9 +9,9 @@
 #include <ncurses.h>
 #include <ctime>
 #include <vector>
-#include <random>
 #include "tetris_types.h"
 #include "tetris_tetromino.h"
+#include "tetris_bag.h"
 
 // TETRIS_GRID CLASS ==========================================================
 
@@ -25,23 +25,14 @@ public:
     int height;
     int length;
 
+    bag tetrominoes;
+
     tetromino* curr_tet;
     tetromino* next_tet;
     std::vector<std::vector<square> > grid;
      
     int tet_y_pos,
         tet_x_pos;     
-    
-    tetromino tetris_tetrominoes[7] = 
-    {
-        tetromino(L_TETROMINO),
-        tetromino(J_TETROMINO),
-        tetromino(T_TETROMINO),
-        tetromino(I_TETROMINO),
-        tetromino(S_TETROMINO),
-        tetromino(Z_TETROMINO),
-        tetromino(O_TETROMINO)
-    };
 
     tetris_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
     void printGrid(WINDOW* win);
@@ -55,9 +46,7 @@ public:
 
 private:
 
-    std::random_device rd;
-    std::mt19937 gen;
-    std::uniform_int_distribution<> dist;
+    
 
     bool peekShiftTetromino(int, int);
     void removeTetromino();

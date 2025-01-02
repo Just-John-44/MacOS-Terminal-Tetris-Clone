@@ -1,7 +1,7 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Completed:
-// Last edited: 12/30/2024
+// Last edited: 1/1/2024
 // test.cpp
 
 
@@ -18,6 +18,7 @@ struct window_data {
     WINDOW* grid_win;
     WINDOW* score_win;
     WINDOW* tetromino_win;
+    WINDOW* round_win;
 
     int grid_win_start_y;
     int grid_win_start_x;
@@ -33,6 +34,11 @@ struct window_data {
     int tetromino_win_start_x;
     int tetromino_win_height;
     int tetromino_win_length;
+
+    int round_win_start_y;
+    int round_win_start_x;
+    int round_win_height;
+    int round_win_length;
 };
 
 void printTetrisFrame(tetris_grid &);
@@ -41,6 +47,9 @@ void initWindowData(window_data &, tetris_grid &);
 void printTerminalSizeMessage(tetris_grid &);
 void printScore(window_data &, int);
 void printNextTetromino(window_data &, tetromino*);
+void printRound(window_data &, int);
+unsigned int calcScore(int, int);
+bool updateRound(int &, int);
 void playTetris(window_data &, tetris_grid &);
 
 // TO DO: create a more reliable way to initialize the terminal in 
@@ -49,16 +58,11 @@ void playTetris(window_data &, tetris_grid &);
 // TO DO: add the music functions
 // TO DO: add the menu functions
 // TO DO: make the window sizes dynamic
+// TO DO: add a nodelay function to the input handling to allow the game to progress without waiting on input.
 
-// DONE: moved the terminal size message into its own function
-// DONE: made a struct for managing all of the window data
-// DONE: moved the tetris_grid window out of the tetris_grid struct
-// DONE: renamed some of the tetris_grid variables
-// DONE: created a window for the game score and the next tetromino
-// DONE: made a simple system for the game score and completed the next tetromino printing function.
-// DONE: modified the row wipe function to return the number of rows wiped
-// DONE: improved the code size in the playTetris function.
-// DONE: fixed incorrect starting rotation for newly generated tetrominoes.
+// DONE: I've implemented the random tetromino bag
+// DONE: added a round window and a round increment system
+// DONE: added a better point system
 
 // FOR DEBUGGING
 void printInfo(tetris_grid & grid){
@@ -81,14 +85,23 @@ void printInfo(tetris_grid & grid){
     move(y += 2, 0);
     clrtoeol();
     printw("tet_salength: %i", grid.curr_tet->salength);
+    move(y += 2, 0);
+    clrtoeol();
+    printw("selection_size: %i", grid.tetrominoes.selections.size());
+    move(y += 2, 0);
+    clrtoeol();
+    printw("selections:");
+    for (int i = 0; i < grid.tetrominoes.selections.size(); i++){
+        printw("%i, ", grid.tetrominoes.selections.at(i));
+    }
 }
-//
+
 
 int main(){
 
     initTerminal();
 
-    tetris_grid grid(30, 20);
+    tetris_grid grid;
     window_data win_data;
     initWindowData(win_data, grid);
 
@@ -104,13 +117,17 @@ int main(){
 //        the game
 void playTetris(window_data &wd, tetris_grid &grid){
 
-    int score = 0;
+    unsigned int score = 0;
+    int rows_cleared = 0;
+    int total_rows_cleared = 0;
+    int round = 0;
 
     grid.setCurrTetrominoOnGrid();
     printTetrisFrame(grid);
     grid.printGrid(wd.grid_win);
     printScore(wd, score);
     printNextTetromino(wd, grid.next_tet);
+    printRound(wd, round);
 
     int in;
     while(1){
@@ -139,9 +156,17 @@ void playTetris(window_data &wd, tetris_grid &grid){
                 break;
 
             case 'w':
-                score += 100 * grid.stackWipeCompleteRows();
+                rows_cleared = grid.stackWipeCompleteRows();
                 grid.stackRowsShift();
+
+                total_rows_cleared += rows_cleared;
+                score += calcScore(rows_cleared, round);
+
                 printScore(wd, score);
+
+                if (updateRound(round, total_rows_cleared)){
+                    printRound(wd, round);
+                }
                 break;
 
             case 's':
@@ -349,7 +374,7 @@ void printScore(window_data &wd, int score){
 
     wmove(wd.score_win, 0, 0);
     wclear(wd.score_win);
-    wprintw(wd.score_win, "  SCORE\n -------\n  %i", score);
+    wprintw(wd.score_win, "  SCORE\n -------\n %07i", score);
     wrefresh(wd.score_win);
 }
 
@@ -384,6 +409,17 @@ void printNextTetromino(window_data &wd, tetromino* tet){
     wrefresh(wd.tetromino_win);
 }
 
+//
+void printRound(window_data &wd, int round){
+    
+    wmove(wd.round_win, 0, 0);
+    wclear(wd.round_win);
+
+    wprintw(wd.round_win, "  ROUND\n -------\n   %03i", round);
+    wrefresh(wd.round_win);
+
+}
+
 // initWindowData initializes the window data struct with all windows' location
 // and sizes based on a tetris grid.
 // Input: the window data structure to be initialized, and a tetris grid to 
@@ -402,8 +438,13 @@ void initWindowData(window_data &wd, tetris_grid &grid){
 
     wd.tetromino_win_start_y = wd.score_win_start_y + wd.score_win_height;
     wd.tetromino_win_start_x = wd.score_win_start_x;
-    wd.tetromino_win_height = wd.grid_win_height - wd.score_win_height - 2;
-    wd.tetromino_win_length = wd.score_win_length;
+    wd.tetromino_win_height = 7;
+    wd.tetromino_win_length = 9;
+
+    wd.round_win_start_y = wd.tetromino_win_start_y + wd.tetromino_win_height;
+    wd.round_win_start_x = wd.score_win_start_x;
+    wd.round_win_height = 5;
+    wd.round_win_length = 9;
 
     wd.grid_win = newwin(wd.grid_win_height, wd.grid_win_length * 3, 
                          wd.grid_win_start_y, wd.grid_win_start_x);
@@ -413,6 +454,10 @@ void initWindowData(window_data &wd, tetris_grid &grid){
 
     wd.tetromino_win = newwin(wd.tetromino_win_height, wd.tetromino_win_length, 
                          wd.tetromino_win_start_y, wd.tetromino_win_start_x);
+
+    wd.round_win = newwin(wd.round_win_height, wd.round_win_length, 
+                         wd.round_win_start_y, wd.round_win_start_x);
+                  
     refresh();
 }
 
@@ -421,3 +466,41 @@ void initWindowData(window_data &wd, tetris_grid &grid){
 
 
 // }
+
+// calcScore returns a number that is equal to the points the player earned
+// after a row is cleared.
+// Input: the number of lines cleared and the round they were cleared on
+// Output: an unsigned int with the value of the points calculated
+unsigned int calcScore(int lines_cleared, int round){
+
+    if (lines_cleared == 1){
+        return 40 * (round + 1);
+    } else if (lines_cleared == 2){
+        return 100 * (round + 1);
+    } else if (lines_cleared == 3){
+        return 300 * (round + 1);
+    } else { // lines_cleared == 4
+        return 1200 * (round + 1);
+    }
+}
+
+// updateRound increases the round of the game based on the total number of
+// lines cleared in the game so far. It updates the round every 10 rows
+// cleared.
+// Input: the current_round, and the total number of lines cleared in the game
+// Output: a modified round variable and a true value if the round was
+//         increased
+bool updateRound(int &round, int total_lines_cleared){
+
+    if (total_lines_cleared % 10 == 0){
+        round++;
+        return true;
+    }
+
+    return false;
+}
+
+//
+void increaseGameSpeed(std::chrono::milliseconds wait_time, int round){
+
+}
