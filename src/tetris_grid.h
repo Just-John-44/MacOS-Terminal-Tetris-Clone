@@ -35,14 +35,13 @@ public:
         tet_x_pos;     
 
     tetris_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
-    void printGrid(WINDOW* win);
+    void printGrid(WINDOW* win) const;
     void generateNextTetromino();
     bool setCurrTetrominoOnGrid();
     bool shiftTetromino(int, int); 
     bool rotateTetromino(direction);
     void dropTetromino();
-    int stackWipeCompleteRows();
-    void stackRowsShift();
+    int clearCompleteRows();
 
 private:
 
@@ -51,7 +50,7 @@ private:
     bool peekShiftTetromino(int, int);
     void removeTetromino();
     void placeTetromino();
-    bool colliding();
+    bool colliding() const;
 };
 
 #endif

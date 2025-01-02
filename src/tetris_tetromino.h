@@ -59,8 +59,7 @@ private:
 
     int** shape_arr; // the tetromino's shape array
     
-    void calcTopandBottomSquare();
-    void calcLeftandRightSquare();
+    void calcEdges();
     // original for 2D arrays
     template<int rows, int cols>
     void setShapeArray(const int(&)[rows][cols]);

@@ -122,13 +122,13 @@ tetromino::tetromino(tetromino_type tet_t){
     current_rotation = 0;
     type = tet_t;
 
-    calcTopandBottomSquare();
-    calcLeftandRightSquare();
+    calcEdges();
+    
 }
 
 // In the following two functions, the pointer to the array is intentionally
 // being set to the same array in memory. That array is unmodifiable and can
-// not be deleted. I don't think they're needed, but they I made them just in
+// not be deleted. I don't think they're needed, but I made them just in
 // case. 
 
 tetromino::tetromino (const tetromino& tet){
@@ -189,8 +189,8 @@ void tetromino::rotate(direction rotation_dir){
     }
 
     // Calculate the new edge squares
-    calcTopandBottomSquare();
-    calcLeftandRightSquare();
+    calcEdges();
+    
 }
 
 // This function is used to index the shape array, but only at the current 
@@ -209,30 +209,19 @@ int tetromino::shapeAt(int y, int x){
     
 }
 
+// resetRotation sets the curr_rotation variable to the initial rotation for 
+// the tetromino and calculates the edges at that rotation.
 void tetromino::resetRotation(){
 
     current_rotation = 0;
-    calcTopandBottomSquare();
-    calcLeftandRightSquare();
+    calcEdges();
 }
 
 // PRIVATE ====================================================================
 
-// TO DO: combine the calc square functions into 1 because im pretty sure
-//        they're not used separately.
-
-// The next two functions are called after the shape array of the tetromino is
-// modified. Its purpose is to make sure that the tetromino's topmost,
-// bottommost, leftmost, and rightmost variables are up to date.
-void tetromino::calcTopandBottomSquare(){
-    // Since the shape array is not 2D, to step through it like it is 2D, there
-    // needs to be a multiplier that will get you to the next "row". This case
-    // is more complicated because i only want to read a quarter of the array
-    // like its 2D, and because I'm working with pointer and not the index
-    // operator.
-    //   To read from only a section of the array like it's 2D, there needs to
-    // be an offset that, once you've made it to the new "row", can be used
-    // to put you back on the correct "column".
+// calcEdges assigns the correct value to the topmost bottommost, leftmost, and 
+// rightmost square values. This is usually used after a rotation.
+void tetromino::calcEdges(){
 
     // Hit is true when a 1 is found in the part of the array that is being searched.
     bool hit = false;
@@ -258,11 +247,8 @@ void tetromino::calcTopandBottomSquare(){
         }
         if (hit) break;
     }
-}
 
-void tetromino::calcLeftandRightSquare(){
-
-    bool hit = false;
+    hit = false;
     for (int col = 0; col < sstride; col++){
         for (int row = 0; row < sstride; row++){
             if (shape_arr[row][current_rotation + col] > 0){
@@ -287,6 +273,7 @@ void tetromino::calcLeftandRightSquare(){
     }
 }
 
+//
 template <int rows, int cols>
 void tetromino::setShapeArray(const int (&tet_array)[rows][cols]){
 
@@ -300,6 +287,7 @@ void tetromino::setShapeArray(const int (&tet_array)[rows][cols]){
     }
 }
 
+//
 void tetromino::setShapeArray(int** tet_array, int rows, int cols){
 
     shape_arr = new int*[rows];

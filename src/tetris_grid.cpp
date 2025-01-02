@@ -12,10 +12,6 @@
 #include "tetris_grid.h"
 #include "tetris_tetromino.h"
 
-// TO DO: improve naming.
-// TO DO: make appropriate functions pass by reference and const
-// TO DO: make the terminal print in only black and white if it doesn't support colors.
-
 
 // ============================================================================
 // TETRIS_GRID CLASS 
@@ -42,7 +38,7 @@ tetris_grid::tetris_grid(int y, int x){
 
 // TERMINAL OUTPUT ============================================================
 
-void tetris_grid::printGrid(WINDOW* win){
+void tetris_grid::printGrid(WINDOW* win) const {
     // int win_height, win_length;
     // getmaxyx(win, win_height, win_length);
 
@@ -76,8 +72,9 @@ void tetris_grid::printGrid(WINDOW* win){
 
 // TETRIS STACK MANIPULATION ==================================================
 
-//
-int tetris_grid::stackWipeCompleteRows(){ 
+// clearCompleteRows replaces all of the rows on the grid with all non-empty
+// values with empty rows, nd then shifts any floating rows downwards.
+int tetris_grid::clearCompleteRows(){ 
     bool row_full;
     int wiped_row_ct = 0;
     for (int i = 0; i < height; i++){
@@ -100,11 +97,6 @@ int tetris_grid::stackWipeCompleteRows(){
         wiped_row_ct++;
     }
 
-    return wiped_row_ct;
-}
-
-//
-void tetris_grid::stackRowsShift(){
     bool unempty_row_arr[height];
     int unempty_row_count = 0;
 
@@ -129,6 +121,7 @@ void tetris_grid::stackRowsShift(){
         }
     }
 
+    // Shift all of the now floating rows downwards as far as they can go.
 
     bool floating = false;
     for (int i = height - 1; i >= 0; i--){
@@ -152,6 +145,8 @@ void tetris_grid::stackRowsShift(){
         if (unempty_row_count == 0)
             break;
     }
+    
+    return wiped_row_ct;
 }
 
 // MOVEMENT AND MOVEMENT VALIDATION ===========================================
@@ -397,7 +392,7 @@ void tetris_grid::dropTetromino(){
 
 // colliding checks to see that if the current tetromino were to be on the
 // grid, if it would be out of bounds or colliding with any squares. 
-bool tetris_grid::colliding(){
+bool tetris_grid::colliding() const {
     
     // Return true if the tetris block colliding with a border.
     if (tet_y_pos + curr_tet->topmost_sqr < 0 || 
@@ -470,7 +465,8 @@ void tetris_grid::generateNextTetromino(){
     next_tet = tetrominoes.select();
 }
 
-//
+// setCurrTetrominoOnGrid assigns the tetromino values to the top of the grid 
+// where each tetromino is supposed to start.
 bool tetris_grid::setCurrTetrominoOnGrid(){
 
     tet_x_pos = (length - curr_tet->sstride) / 2;

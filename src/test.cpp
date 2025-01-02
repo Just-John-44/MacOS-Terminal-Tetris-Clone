@@ -59,10 +59,10 @@ void playTetris(window_data &, tetris_grid &);
 // TO DO: add the menu functions
 // TO DO: make the window sizes dynamic
 // TO DO: add a nodelay function to the input handling to allow the game to progress without waiting on input.
+// TO DO: make the terminal print in only black and white if it doesn't support colors.
 
-// DONE: I've implemented the random tetromino bag
-// DONE: added a round window and a round increment system
-// DONE: added a better point system
+// DONE: combined stackRowsShift and stackWipeCompleteRows
+// DONE: combined calcLeftRight and calcTopnbttom
 
 // FOR DEBUGGING
 void printInfo(tetris_grid & grid){
@@ -121,6 +121,7 @@ void playTetris(window_data &wd, tetris_grid &grid){
     int rows_cleared = 0;
     int total_rows_cleared = 0;
     int round = 0;
+    std::chrono::milliseconds wait_time;
 
     grid.setCurrTetrominoOnGrid();
     printTetrisFrame(grid);
@@ -156,8 +157,7 @@ void playTetris(window_data &wd, tetris_grid &grid){
                 break;
 
             case 'w':
-                rows_cleared = grid.stackWipeCompleteRows();
-                grid.stackRowsShift();
+                rows_cleared = grid.clearCompleteRows();
 
                 total_rows_cleared += rows_cleared;
                 score += calcScore(rows_cleared, round);
