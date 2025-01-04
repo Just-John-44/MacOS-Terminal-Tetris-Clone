@@ -12,6 +12,10 @@
 #include "tetris_grid.h"
 #include "tetris_tetromino.h"
 
+#define START_UPDATE_SPEED_MS 500
+
+typedef std::chrono::high_resolution_clock::time_point time_point;
+typedef std::chrono::milliseconds duration_ms;
 
 // This struct is used to keep track of all of the window positions and sizes.
 struct window_data {
@@ -41,6 +45,16 @@ struct window_data {
     int round_win_length;
 };
 
+struct game_data {
+    int curr_round_cleared_rows;
+    unsigned int score;
+    int round;
+    time_point last_refresh;
+    duration_ms shift_wait_ms;
+    bool user_input;
+    bool user_input_shifted_down;
+};
+
 void printTetrisFrame(tetris_grid &);
 void initTerminal();
 void initWindowData(window_data &, tetris_grid &);
@@ -49,8 +63,12 @@ void printScore(window_data &, int);
 void printNextTetromino(window_data &, tetromino*);
 void printRound(window_data &, int);
 unsigned int calcScore(int, int);
-bool updateRound(int &, int);
-void playTetris(window_data &, tetris_grid &);
+bool updateRound(int &, int &);
+void increaseGameSpeed(game_data &);
+void playTetris(tetris_grid &, game_data &, window_data &);
+void initGameData(game_data &);
+void getUserInput(tetris_grid &, game_data &);
+void updateGameAndRefresh(tetris_grid &, game_data &, window_data &);
 
 // TO DO: create a more reliable way to initialize the terminal in 
 //        terminal_init so it's changes will affect all translation units.
@@ -60,12 +78,17 @@ void playTetris(window_data &, tetris_grid &);
 // TO DO: make the window sizes dynamic
 // TO DO: add a nodelay function to the input handling to allow the game to progress without waiting on input.
 // TO DO: make the terminal print in only black and white if it doesn't support colors.
+// TO DO: divide user input and game update and refresh screen
 
-// DONE: combined stackRowsShift and stackWipeCompleteRows
-// DONE: combined calcLeftRight and calcTopnbttom
+// DONE: created a tetris_grid function that returns true if the tetromino has dropped
+// DONE: divided the game loop into user input and a game update function
+// DONE: fixed bug with clearComplete rows that caused thigns to be shifted even wen there were no rows to clear
+// DONE: created a game_data structure that holds all game data to share between functions
+// DONE: fixed bug with update round function so it now updates the round correctly
+// DONE: implemented automatic shifting and speed ups as the rounds increase
 
 // FOR DEBUGGING
-void printInfo(tetris_grid & grid){
+void printInfo(tetris_grid & grid, game_data &gd){
 
     int y;
     
@@ -94,6 +117,12 @@ void printInfo(tetris_grid & grid){
     for (int i = 0; i < grid.tetrominoes.selections.size(); i++){
         printw("%i, ", grid.tetrominoes.selections.at(i));
     }
+    move(y += 2, 0);
+    clrtoeol();
+    printw("total rows cleared: %i", gd.curr_round_cleared_rows);
+    move(y += 2, 0);
+    clrtoeol();
+    printw("game speed ms: %i", gd.shift_wait_ms);
 }
 
 
@@ -103,103 +132,136 @@ int main(){
 
     tetris_grid grid;
     window_data win_data;
+    game_data game_data;
+
     initWindowData(win_data, grid);
+    initGameData(game_data);
 
     printTerminalSizeMessage(grid);
 
-    playTetris(win_data, grid);
+    playTetris(grid, game_data, win_data);
 
     endwin();
+}
+
+//
+void getUserInput(tetris_grid &grid, game_data &gd){
+
+    int in; 
+    in = getch();
+
+    switch(in){
+
+        case 'q':
+            endwin();
+            exit(0);
+            
+        case 'a':
+            grid.rotateTetromino(CCWISE);
+            break;
+
+        case 's':
+            grid.dropTetromino();
+            break;
+
+        case KEY_UP:
+        case 'd':
+            grid.rotateTetromino(CWISE);
+            break;
+
+        case KEY_DOWN:
+            gd.user_input_shifted_down = true;
+            break;
+
+        case KEY_LEFT:
+            grid.shiftTetromino(0, -1);
+            break;
+
+        case KEY_RIGHT:
+            grid.shiftTetromino(0, 1);
+            break;
+
+        //open menu
+        //play/pause game
+    }
+
+    gd.user_input = true;
+}
+
+// 
+void updateGameAndRefresh(tetris_grid &grid, game_data &gd, window_data &wd){
+
+    bool shifted;
+    time_point now = std::chrono::high_resolution_clock::now();
+
+    if (gd.last_refresh == std::chrono::high_resolution_clock::time_point::min()){
+        gd.last_refresh = now;
+    }
+
+    if (now - gd.last_refresh >= gd.shift_wait_ms || 
+        gd.user_input_shifted_down){
+
+        shifted = grid.shiftTetromino(1, 0);
+
+        if (!shifted){
+
+            // Give the player time to do a last minute shift
+            std::this_thread::sleep_for(duration_ms(150));
+
+            // Clear all complete rows.
+            int rows_cleared = grid.clearCompleteRows();
+
+            // Set the next tetromino up.
+            grid.generateNextTetromino();
+            grid.setCurrTetrominoOnGrid();
+
+            printNextTetromino(wd, grid.next_tet);
+            
+            // Update the score if it eeds to be updated.
+            if (rows_cleared > 0){
+                gd.curr_round_cleared_rows += rows_cleared;
+                gd.score += calcScore(rows_cleared, gd.round);
+                printScore(wd, gd.score);
+            }  
+            
+            // Update the round if it needs to be updated.
+            if (updateRound(gd.round, gd.curr_round_cleared_rows)){
+                printRound(wd, gd.round);
+                increaseGameSpeed(gd);
+            }
+            
+        }
+
+        gd.last_refresh = now;
+        gd.user_input_shifted_down = false;
+    }
+
+    // Refresh the screen if any change has been made to the grid.
+    if (gd.user_input || shifted){
+        grid.printGrid(wd.grid_win);
+        printInfo(grid, gd);
+        refresh();     
+        gd.user_input = false; 
+    }
 }
 
 // playTetris contains the entire game loop for the tetris game.
 // Input: the window_data struct for printing, and the tetris grid for playing
 //        the game
-void playTetris(window_data &wd, tetris_grid &grid){
-
-    unsigned int score = 0;
-    int rows_cleared = 0;
-    int total_rows_cleared = 0;
-    int round = 0;
-    std::chrono::milliseconds wait_time;
+void playTetris(tetris_grid &grid, game_data &gd, window_data &wd){
 
     grid.setCurrTetrominoOnGrid();
     printTetrisFrame(grid);
     grid.printGrid(wd.grid_win);
-    printScore(wd, score);
+    printScore(wd, gd.score);
     printNextTetromino(wd, grid.next_tet);
-    printRound(wd, round);
-
-    int in;
-    while(1){
-        in = getch();
-        switch(in){
-            
-            case 'q':
-                endwin();
-                exit(0);
-            
-            case 'a':
-                grid.rotateTetromino(CCWISE);
-                break;
-
-            case 'd':
-                grid.rotateTetromino(CWISE);
-                break;
-
-            case 'g':
-                grid.generateNextTetromino();
-                if (!grid.setCurrTetrominoOnGrid()){
-                    endwin();
-                    exit(0);
-                }
-                printNextTetromino(wd, grid.next_tet);
-                break;
-
-            case 'w':
-                rows_cleared = grid.clearCompleteRows();
-
-                total_rows_cleared += rows_cleared;
-                score += calcScore(rows_cleared, round);
-
-                printScore(wd, score);
-
-                if (updateRound(round, total_rows_cleared)){
-                    printRound(wd, round);
-                }
-                break;
-
-            case 's':
-                grid.dropTetromino();
-
-            case 'p':
-                break;
-
-            case KEY_UP:    
-                grid.shiftTetromino(-1, 0);
-                break;
-
-            case KEY_DOWN:
-                grid.shiftTetromino(1, 0);
-                break;
-
-            case KEY_LEFT:
-                grid.shiftTetromino(0, -1);
-                break;
-
-            case KEY_RIGHT:
-                grid.shiftTetromino(0, 1);
-                break;
-            
-        //open menu
-        //play/pause game
-        }
-
-        grid.printGrid(wd.grid_win);
-        printInfo(grid);
-        refresh();
+    printRound(wd, gd.round);
+    
+    while (1){
+        getUserInput(grid, gd);
+        updateGameAndRefresh(grid, gd, wd);
+        std::this_thread::sleep_for(duration_ms(25));
     }
-
 }
 
 // printTetrisFrame prints the tetris title, and a border for the tetris grid,
@@ -309,6 +371,7 @@ void initTerminal(){
     initscr();
     curs_set(0);
     noecho();
+    nodelay(stdscr, true);
     keypad(stdscr, true);
 
     if (has_colors()){
@@ -392,6 +455,8 @@ void printNextTetromino(window_data &wd, tetromino* tet){
 
         if (tet->type == I_TETROMINO){
             wmove(wd.tetromino_win, i + 3, 1);
+        } else if (tet->type == O_TETROMINO){
+            wmove(wd.tetromino_win, i + 3, 1);
         } else {
             wmove(wd.tetromino_win, i + 3, 2);
         }
@@ -467,13 +532,25 @@ void initWindowData(window_data &wd, tetris_grid &grid){
 
 // }
 
+void initGameData(game_data &gd){
+    gd.score = 0;
+    gd.round = 0;
+    gd.curr_round_cleared_rows = 0;
+    gd.last_refresh = std::chrono::high_resolution_clock::time_point::min();
+    gd.shift_wait_ms = duration_ms(500);
+    gd.user_input = false;
+    gd.user_input_shifted_down = false;
+}
+
 // calcScore returns a number that is equal to the points the player earned
 // after a row is cleared.
 // Input: the number of lines cleared and the round they were cleared on
 // Output: an unsigned int with the value of the points calculated
 unsigned int calcScore(int lines_cleared, int round){
 
-    if (lines_cleared == 1){
+    if (lines_cleared == 0){
+        return 0;
+    } else if (lines_cleared == 1){
         return 40 * (round + 1);
     } else if (lines_cleared == 2){
         return 100 * (round + 1);
@@ -490,9 +567,11 @@ unsigned int calcScore(int lines_cleared, int round){
 // Input: the current_round, and the total number of lines cleared in the game
 // Output: a modified round variable and a true value if the round was
 //         increased
-bool updateRound(int &round, int total_lines_cleared){
+bool updateRound(int &round, int &total_lines_cleared){
 
-    if (total_lines_cleared % 10 == 0){
+    if (total_lines_cleared >= 10)
+    {
+        total_lines_cleared -= 10;
         round++;
         return true;
     }
@@ -501,6 +580,8 @@ bool updateRound(int &round, int total_lines_cleared){
 }
 
 //
-void increaseGameSpeed(std::chrono::milliseconds wait_time, int round){
+void increaseGameSpeed(game_data &gd){
 
+    gd.shift_wait_ms = gd.shift_wait_ms - 
+                       duration_ms(gd.round * 5);
 }

@@ -121,8 +121,12 @@ int tetris_grid::clearCompleteRows(){
         }
     }
 
-    // Shift all of the now floating rows downwards as far as they can go.
+    // Do not shift anything down if nothing was cleared.
+    if (wiped_row_ct == 0){
+        return wiped_row_ct;
+    }
 
+    // Shift all of the now floating rows downwards as far as they can go.
     bool floating = false;
     for (int i = height - 1; i >= 0; i--){
         if (unempty_row_arr[i] == 0){
@@ -192,8 +196,9 @@ bool tetris_grid::shiftTetromino(int y_shift_ct, int x_shift_ct){
 // peekShiftTetromino shifts the location values of the tetromino on the grid.
 // It does not change any of the grid values in any way, and it returns true if
 // the shift is successful.
-// Input: an x and y modifier for the tetromino's grid location
-bool tetris_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct){
+// Input: an x and y modifier for the tetromino's grid location and a value that 
+//        commits the modification of the tet positions or doesn't
+bool tetris_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct, bool commit){
 
     int prev_tet_y_pos = tet_y_pos;
     int prev_tet_x_pos = tet_x_pos;
@@ -206,6 +211,13 @@ bool tetris_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct){
         tet_y_pos = prev_tet_y_pos;
         tet_x_pos = prev_tet_x_pos;
         return false;
+    }
+
+    // If the tet positions shoudl not be modified when the function returns,
+    // revert them.
+    if (!commit){
+        tet_y_pos = prev_tet_y_pos;
+        tet_x_pos = prev_tet_x_pos;
     }
 
     return true;
@@ -244,10 +256,10 @@ bool tetris_grid::rotateTetromino(direction dir){
             (prev_rotation == rotation_2 && dir == CCWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, -1) ||
-                peekShiftTetromino(-1, -1) ||
-                peekShiftTetromino(2, 0) ||
-                peekShiftTetromino(2, -1))
+                peekShiftTetromino(0, -1, true) ||
+                peekShiftTetromino(-1, -1, true) ||
+                peekShiftTetromino(2, 0, true) ||
+                peekShiftTetromino(2, -1, true))
             {
                 can_rotate = true;
 
@@ -260,10 +272,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_1 && dir == CWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, 1) ||
-                peekShiftTetromino(1, 1) ||
-                peekShiftTetromino(-2, 0) ||
-                peekShiftTetromino(-2, 1))
+                peekShiftTetromino(0, 1, true) ||
+                peekShiftTetromino(1, 1, true) ||
+                peekShiftTetromino(-2, 0, true) ||
+                peekShiftTetromino(-2, 1, true))
             {
                 can_rotate = true;
 
@@ -276,10 +288,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_0 && dir == CCWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, 1) ||
-                peekShiftTetromino(-1, 1) ||
-                peekShiftTetromino(2, 0) ||
-                peekShiftTetromino(2, 1))
+                peekShiftTetromino(0, 1, true) ||
+                peekShiftTetromino(-1, 1, true) ||
+                peekShiftTetromino(2, 0, true) ||
+                peekShiftTetromino(2, 1, true))
             {
                 can_rotate = true;
 
@@ -292,10 +304,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_3 && dir == CWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, -1) ||
-                peekShiftTetromino(1, -1) ||
-                peekShiftTetromino(-2, 0) ||
-                peekShiftTetromino(-2, -1))
+                peekShiftTetromino(0, -1, true) ||
+                peekShiftTetromino(1, -1, true) ||
+                peekShiftTetromino(-2, 0, true) ||
+                peekShiftTetromino(-2, -1, true))
             {
                 can_rotate = true;
 
@@ -313,10 +325,10 @@ bool tetris_grid::rotateTetromino(direction dir){
             (prev_rotation == rotation_3 && dir == CCWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, -2) ||
-                peekShiftTetromino(0, 1) ||
-                peekShiftTetromino(1, -2) ||
-                peekShiftTetromino(-2, 1))
+                peekShiftTetromino(0, -2, true) ||
+                peekShiftTetromino(0, 1, true) ||
+                peekShiftTetromino(1, -2, true) ||
+                peekShiftTetromino(-2, 1, true))
             {
                 can_rotate = true;
 
@@ -329,10 +341,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_2 && dir == CWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, 2) ||
-                peekShiftTetromino(0, -1) ||
-                peekShiftTetromino(-1, 2) ||
-                peekShiftTetromino(2, -1))
+                peekShiftTetromino(0, 2, true) ||
+                peekShiftTetromino(0, -1, true) ||
+                peekShiftTetromino(-1, 2, true) ||
+                peekShiftTetromino(2, -1, true))
             {
                 can_rotate = true;
 
@@ -345,10 +357,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_0 && dir == CCWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, -1) ||
-                peekShiftTetromino(0, 2) ||
-                peekShiftTetromino(-2, -1) ||
-                peekShiftTetromino(1, 2))
+                peekShiftTetromino(0, -1, true) ||
+                peekShiftTetromino(0, 2, true) ||
+                peekShiftTetromino(-2, -1, true) ||
+                peekShiftTetromino(1, 2, true))
             {
                 can_rotate = true;
 
@@ -361,10 +373,10 @@ bool tetris_grid::rotateTetromino(direction dir){
                    (prev_rotation == rotation_3 && dir == CWISE))
         {
             if (!colliding() ||
-                peekShiftTetromino(0, 1) ||
-                peekShiftTetromino(0, -2) ||
-                peekShiftTetromino(2, 1) ||
-                peekShiftTetromino(-1, -2))
+                peekShiftTetromino(0, 1, true) ||
+                peekShiftTetromino(0, -2, true) ||
+                peekShiftTetromino(2, 1, true) ||
+                peekShiftTetromino(-1, -2, true))
             {
                 can_rotate = true;
 
@@ -384,10 +396,17 @@ bool tetris_grid::rotateTetromino(direction dir){
 void tetris_grid::dropTetromino(){
     removeTetromino();
 
-    while(peekShiftTetromino(1, 0));
+    while(peekShiftTetromino(1, 0, true));
 
     placeTetromino();
+}
 
+// tetrominoDropped is used to determine if the current tetromino is shifted as
+// far down as it can be in that moment.
+// Output: true if it cannot be shifted down and false otherwise
+bool tetris_grid::tetrominoDropped(){
+
+    return !peekShiftTetromino(1, 0, false);
 }
 
 // colliding checks to see that if the current tetromino were to be on the

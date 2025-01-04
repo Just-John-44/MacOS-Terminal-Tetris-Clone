@@ -42,12 +42,11 @@ public:
     bool rotateTetromino(direction);
     void dropTetromino();
     int clearCompleteRows();
+    bool tetrominoDropped();
 
 private:
 
-    
-
-    bool peekShiftTetromino(int, int);
+    bool peekShiftTetromino(int, int, bool);
     void removeTetromino();
     void placeTetromino();
     bool colliding() const;
