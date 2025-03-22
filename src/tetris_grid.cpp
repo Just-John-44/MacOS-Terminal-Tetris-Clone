@@ -401,14 +401,6 @@ void tetris_grid::dropTetromino(){
     placeTetromino();
 }
 
-// tetrominoDropped is used to determine if the current tetromino is shifted as
-// far down as it can be in that moment.
-// Output: true if it cannot be shifted down and false otherwise
-bool tetris_grid::tetrominoDropped(){
-
-    return !peekShiftTetromino(1, 0, false);
-}
-
 // colliding checks to see that if the current tetromino were to be on the
 // grid, if it would be out of bounds or colliding with any squares. 
 bool tetris_grid::colliding() const {

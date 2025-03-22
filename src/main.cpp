@@ -10,7 +10,7 @@
     #define MA_NO_RUNTIME_LINKING
 #endif
 #define MINIAUDIO_IMPLEMENTATION
-#include "minaudio.h"
+#include "../dependencies/include/minaudio.h"
 // #include "tetris.h"
 #include <stdio.h>
 #include <iostream>

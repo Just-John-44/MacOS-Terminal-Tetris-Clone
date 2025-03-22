@@ -25,15 +25,9 @@ public:
     int height;
     int length;
 
-    bag tetrominoes;
-
     tetromino* curr_tet;
     tetromino* next_tet;
-    std::vector<std::vector<square> > grid;
-     
-    int tet_y_pos,
-        tet_x_pos;     
-
+    
     tetris_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
     void printGrid(WINDOW* win) const;
     void generateNextTetromino();
@@ -42,9 +36,15 @@ public:
     bool rotateTetromino(direction);
     void dropTetromino();
     int clearCompleteRows();
-    bool tetrominoDropped();
 
 private:
+
+    int tet_y_pos,
+        tet_x_pos;
+
+    std::vector<std::vector<square> > grid;
+
+    bag tetrominoes;
 
     bool peekShiftTetromino(int, int, bool);
     void removeTetromino();
