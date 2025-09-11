@@ -1,0 +1,125 @@
+John Wesley Thompson
+
+~Tetris notes!~
+
+
+all tetris blocks:
+
+[ ]		
+[_][ ]	   [ ][_]	
+   [_]	[_][_]			
+
+[ ][ ]	[ ][ ]
+[_][_]	[_][_]
+
+   [ ]	
+[ ][_]	[_][ ]
+[_]	 	   [_][_]
+
+[ ][ ]
+[ ]		[_][_][ ]
+[_]   	      [_]
+
+[ ]
+[ ]		[ ][_][_]
+[_][_]	[_]
+
+[ ]		
+[ ][_]	   [ ]
+[_]		[_][_][_]
+
+[ ]	
+[ ]	
+[ ]	
+[_]	[_][_][_][_]
+
+,_______________________________________,
+|  _____|_____|_____|_____|_____|_____  |
+| [_, ,_] ,___]_, ,_]  _  ]_, ,_] ,___] |
+|   | | | [__ | | | | [_] | | | | [___  |
+|   | | | ,__]| | | | ,  _] | | [___, ] |
+|   | | | [___| | | | |\ \|_] [_|___] | |
+|   [_] [_____] [_] [_] \_\_____]_____] |
+[_______|_____|_____|_____|_____|_______]
+
+,_____________________________,
+|  _____|_____|__   __|_____  |
+| [ ,___]  _  ]  \ /  ] ,___] |
+| | | __| [_] | , v , | [__   |
+| | |[, ] ,_, | |\_/| | ,__]  |
+| | [_] | | | | |   | | [___  |
+| [_____]_] [_]_]   [_]_____] |
+|_____________________________|
+|  _____|_     _|_____|_____  |
+| [ ,_, ] |   | | ,___]  _  ] |
+| | [ ] | |   | | [__ | [_] | |
+| | [ ] |\ \ / /| ,__]| ,  _] |
+| | [_] | \ v / | [___| |\ \  |
+| [_____]  \_/  |_____]_] \_\ |
+[_______|_______|_____|_______]
+
+Tetris piece functions:
+	- print?
+	- turn right / left (same difference i think)
+Tetris piece members:
+
+tetrisBoard functions:
+	- move blocks
+	- print board?
+	- clear board
+
+Menu functions:
+	- add menu option
+		- recieves a function pointer
+	- remove menu option
+	- print menu
+	- menu cursor down
+	- menu cursor up
+	- select menu option
+
+
+    the user should be able to choose the number or columns
+in the game. there will be an upper limit. any time the 
+terminal size is too small to fit the game, the user 
+should be prompted to expand it by x columns and/or x 
+rows.
+
+19 December 2024: 
+
+Things I want the tetromino class to do:
+
+	store locations for it's left, right, top, and bottommost squares
+	have some way of referencing its shape array
+
+	return a pointer to its shape array for the tetris grid
+	rotate the block in a specified direction
+	calculate its left, right, top, and bottommost square values
+
+
+Things I want the tetris grid class to do:
+
+	store a value for the location of the top left corner of the current tetromino
+	store a value that tells if the tetromino start location is obstructed
+
+	shift the block around on the grid
+	calculate if the block is out of bounds
+		if the tetromino location plus the offest of the side being checked is outside the range of the board...
+	Instead of checking ahead for, it should only check for current collisions and let the tetromino class handle the rotation
+		It should do the same thing for shifting. shift, then check. dont check before shifting.
+	clear full rows on the tetris stack
+	generate random tetrominoes to be set on the grid
+	set tetrominoes on the grid
+
+
+What I want the main tetris program to do:
+
+	calculate the running number of points based on the number of rows cleared by the tetris grid 
+	establish a game over condition based on the user's menu options or the tetris board's obstructed spawn condition
+
+	create a function that initializes all of the ncurses data and has preprocesor directives to prevent other files from
+		initializing ncureses if this function already has.
+	Startup the music somehow
+	create the menu for user options
+
+Collisions:
+	Shift or rotate the tetris tetromino, or fake shift it. If there is a collision or its out of bounds, shift it back.

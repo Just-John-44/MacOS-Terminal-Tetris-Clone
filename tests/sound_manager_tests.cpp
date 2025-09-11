@@ -25,13 +25,13 @@ int main(){
 
 
     for (int i = 0; i < sm.sound_count; i++){
-        std::cout << "filename: " << sm.sounds[i].filename << "\n";
-        std::cout << "buffer address: " << &sm.sounds[i].buffer.ref.pData << "\n";
-        std::cout << "buffer_conf address: " << &sm.sounds[i].buffer_config.pData << "\n";
-        std::cout << "pcm frame length: " << sm.sounds[i].len_in_pcm_frames << "\n";
-        std::cout << "playing: " << sm.sounds[i].playing << "\n";
-        std::cout << "looping: " << sm.sounds[i].looping << "\n";
-        std::cout << "interrupt: " << sm.sounds[i].interrupt << "\n";
+        std::cout << "filename: " << sm.sounds[i].s_filename << "\n";
+        std::cout << "buffer address: " << &sm.sounds[i].s_buffer.ref.pData << "\n";
+        std::cout << "buffer_conf address: " << &sm.sounds[i].s_buffer_config.pData << "\n";
+        std::cout << "pcm frame length: " << sm.sounds[i].s_len_in_pcm_frames << "\n";
+        std::cout << "playing: " << sm.sounds[i].s_playing << "\n";
+        std::cout << "looping: " << sm.sounds[i].s_looping << "\n";
+        std::cout << "interrupt: " << sm.sounds[i].s_interrupt << "\n";
         std::cout << "--------------------------------------\n";
     }
 
@@ -46,7 +46,7 @@ int main(){
             case '1':
                 std::cout << "in case 1.\n";
                 sm.playSound("1_test.mp3");
-                std::cout << "currently playing: " << sm.sounds[0].playing << "\n";
+                std::cout << "currently playing: " << sm.sounds[0].s_playing << "\n";
                 break;
 
             case '2':

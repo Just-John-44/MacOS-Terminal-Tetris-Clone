@@ -178,6 +178,12 @@ sound_manager::~sound_manager(){
 }
 
 //
+// void sound_manager::loadSounds(){
+//     // for each filename.mp3 in the specified directory, add a sound for 
+//     // that file into the sounds vector of the sound_manger struct.
+// }
+
+//
 void sound_manager::addSound(std::string filename, bool loop){
 
     sounds.push_back(sound(filename, loop));

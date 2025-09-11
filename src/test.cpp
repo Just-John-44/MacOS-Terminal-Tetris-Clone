@@ -7,13 +7,11 @@
 #ifdef __APPLE__
     #define MA_NO_RUNTIME_LINKING
 #endif
-#define MINIAUDIO_IMPLEMENTATION
 
 #include <iostream>
 #include <ncurses.h>
 #include <thread>
 #include <chrono>
-// #include "../dependencies/include/minaudio.h"
 #include "tetris_grid.h"
 #include "tetris_tetromino.h"
 #include "sound_manager.h"
@@ -150,8 +148,13 @@ int main(){
     playTetris(grid, game_data, win_data, sound_manager);
 
     printGameOver(win_data);
+    getch();
+    std::string line;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
     endwin();
+    std::cout << "Goodbye, World!\n";
+    return 0;
 }
 
 // getUserInput simply handles all immediate input from the user. This includes
@@ -634,20 +637,20 @@ void increaseGameSpeed(game_data &gd){
 void printGameOver(window_data &wd){
     clear();
     printw(
-        ",_____________________________,"
-        "|  _____|_____|__   __|_____  |"
-        "| [ ,___]  _  ]  \\ /  ] ,___] |"
-        "| | | __| [_] | , v , | [__   |"
-        "| | |[, ] ,_, | |\\_/| | ,__]  |"
-        "| | [_] | | | | |   | | [___  |"
-        "| [_____]_] [_]_]   [_]_____] |"
-        "|_____________________________|"
-        "|  _____|_     _|_____|_____  |"
-        "| [ ,_, ] |   | | ,___]  _  ] |"
-        "| | [ ] | |   | | [__ | [_] | |"
-        "| | [ ] |\\ \\ / /| ,__]| ,  _] |"
-        "| | [_] | \\ v / | [___| |\\ \\  |"
-        "| [_____]  \\_/  |_____]_] \\_\\ |"
-        "[_______|_______|_____|_______]"
+        ",_____________________________,\n"
+        "|  _____|_____|__   __|_____  |\n"
+        "| [ ,___]  _  ]  \\ /  ] ,___] |\n"
+        "| | | __| [_] | , v , | [__   |\n"
+        "| | |[, ] ,_, | |\\_/| | ,__]  |\n"
+        "| | [_] | | | | |   | | [___  |\n"
+        "| [_____]_] [_]_]   [_]_____] |\n"
+        "|_____________________________|\n"
+        "|  _____|_     _|_____|_____  |\n"
+        "| [ ,_, ] |   | | ,___]  _  ] |\n"
+        "| | [ ] | |   | | [__ | [_] | |\n"
+        "| | [ ] |\\ \\ / /| ,__]| ,  _] |\n"
+        "| | [_] | \\ v / | [___| |\\ \\  |\n"
+        "| [_____]  \\_/  |_____]_] \\_\\ |\n"
+        "[_______|_______|_____|_______]\n"
     );
 }

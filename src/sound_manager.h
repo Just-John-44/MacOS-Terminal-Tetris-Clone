@@ -13,12 +13,16 @@
 // RasoolAsaad https://pixabay.com/users/rasoolasaad-47313572/
 // 
 
-// TO DO: create a function to deallocate the raw audio data
+// TO DO: create a way to read all audio files from a directory instead of 
+//        entering all of the file names.
+
+#define MINIAUDIO_IMPLEMENTATION
 
 #include "../dependencies/include/minaudio.h"
 #include <thread>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #define CHANNEL_COUNT 2
 #define SAMPLE_RATE 48000
@@ -53,6 +57,7 @@ public:
 
     sound_manager();
     ~sound_manager();
+    //void loadSounds(); // TO DO
     void addSound(std::string, bool);
     void on();
     void off();
