@@ -8,6 +8,8 @@
     #define MA_NO_RUNTIME_LINKING
 #endif
 
+#define MINIAUDIO_IMPLEMENTATION
+
 #include <iostream>
 #include <ncurses.h>
 #include <thread>
@@ -17,21 +19,6 @@
 #include "sound_manager.h"
 
 #define START_UPDATE_SPEED_MS 500
-
-enum sound_idx {
-    GAME_START = 0,
-    THEME,
-    ONE_ROW,
-    TWO_ROWS,
-    THREE_ROWS,
-    FOUR_ROWS,
-    SHIFT,
-    ROTATE,
-    SOFT_DROP,
-    HARD_DROP,
-    LEVEL_UP,
-    GAME_OVER
-};
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 typedef std::chrono::milliseconds duration_ms;
@@ -91,8 +78,13 @@ void getUserInput(tetris_grid &, game_data &, sound_manager &);
 void updateGameAndRefresh(tetris_grid &, game_data &, window_data &, sound_manager &);
 void printGameOver(window_data &wd);
 
-// TO DO: create a more reliable way to initialize the terminal in 
-//        terminal_init so it's changes will affect all translation units.
+// TO DO: put the sound class into its own file.
+// TO DO: make sound manager less dynamic. It can simply be designed to hold
+//        the necessary number of sound effects and have enums for each. I think
+//        I tried to make things way too robust for a program like this.
+// TO DO: make the game end like it's supposed to.
+// TO DO: create a more reliable way to initialize the terminal in. 
+//        terminal_init so its changes will affect all translation units.
 //        I dont want initscr to be called multiple times, for example.
 // TO DO: add the menu functions
 // TO DO: add a nodelay function to the input handling to allow the game to progress without waiting on input.
@@ -126,19 +118,6 @@ int main(){
     window_data win_data;
     game_data game_data;
     sound_manager sound_manager;
-    sound_manager.addSound("../attachments/sounds/silly/lets_play.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/theme.mp3", true);
-    sound_manager.addSound("../attachments/sounds/silly/one_row.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/two_rows.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/three_rows.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/four_rows.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/shift.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/rotation.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/soft_drop.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/hard_drop.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/faster.mp3", false);
-    sound_manager.addSound("../attachments/sounds/silly/game_over.mp3", false);
-
 
     initWindowData(win_data, grid);
     initGameData(game_data);
@@ -170,12 +149,10 @@ void getUserInput(tetris_grid &grid, game_data &gd, sound_manager &sm){
 
         case 'q':
             gd.game_over = true;
-            sm.playSound(GAME_OVER);
             break;
 
         case 'a':
             grid.rotateTetromino(CCWISE);
-            sm.playSound(ROTATE);
             break;
 
         case 's':
@@ -187,7 +164,6 @@ void getUserInput(tetris_grid &grid, game_data &gd, sound_manager &sm){
         case KEY_UP:
         case 'd':
             grid.rotateTetromino(CWISE);
-            sm.playSound(ROTATE);
             break;
 
         case KEY_DOWN:
@@ -196,12 +172,10 @@ void getUserInput(tetris_grid &grid, game_data &gd, sound_manager &sm){
 
         case KEY_LEFT:
             grid.shiftTetromino(0, -1);
-            sm.playSound(SHIFT);
             break;
 
         case KEY_RIGHT:
             grid.shiftTetromino(0, 1);
-            sm.playSound(SHIFT);
             break;
 
         //open menu
@@ -251,14 +225,9 @@ void updateGameAndRefresh(tetris_grid &grid, game_data &gd, window_data &wd, sou
                 gd.curr_round_cleared_rows += rows_cleared;
                 gd.score += calcScore(rows_cleared, gd.round);
                 printScore(wd, gd.score);
-                if (rows_cleared == 1){
-                    sm.playSound(ONE_ROW);
-                } else if (rows_cleared == 2){
-                    sm.playSound(TWO_ROWS);
-                } else if (rows_cleared == 3){
-                    sm.playSound(THREE_ROWS);
-                } else {
-                    sm.playSound(FOUR_ROWS);
+
+                if (rows_cleared == 4){
+                    sm.playSound(TETRIS);
                 }
             }  
             
@@ -297,7 +266,6 @@ void playTetris(tetris_grid &grid, game_data &gd, window_data &wd, sound_manager
     printRound(wd, gd.round);
     
     sm.on();
-    sm.playSound(GAME_START);
     sm.playSound(THEME);
     
     while (!gd.game_over){
@@ -629,8 +597,7 @@ bool updateRound(int &round, int &total_lines_cleared){
 // Input: a game_data structure for finding the shift wait time and the round
 void increaseGameSpeed(game_data &gd){
 
-    gd.shift_wait_ms = gd.shift_wait_ms - 
-                       duration_ms(gd.round * 5);
+    gd.shift_wait_ms = gd.shift_wait_ms - duration_ms(gd.round * 5);
 }
 
 // 

@@ -1,76 +1,46 @@
 // John Wesley Thompson
 // Created: 1/3/2024
-// Last edited: 18/3/2025
-// tetris_theme.h
+// Last edited: 9/27/2025
+// sound_manager.h
 
-// Block_settle.mp3
-// Driken5482 https://pixabay.com/users/driken5482-45721595/
-// 8_bit_crash.mp3
-// freesound_community https://pixabay.com/users/freesound_community-46691455/
-// Tetris.mp3
-// jkotas1 https://archive.org/details/@jkotas1
-// Row_clear.mp3
-// RasoolAsaad https://pixabay.com/users/rasoolasaad-47313572/
-// 
-
-// TO DO: create a way to read all audio files from a directory instead of 
-//        entering all of the file names.
-
-#define MINIAUDIO_IMPLEMENTATION
+#ifndef SOUND_MANAGER_H
+#define SOUND_MANAGER_H
 
 #include "../dependencies/include/minaudio.h"
-#include <thread>
-#include <string>
-#include <vector>
-#include <filesystem>
+#include "sound.h"
 
-#define CHANNEL_COUNT 2
-#define SAMPLE_RATE 48000
-#define DEFAULT_BUFFER_SIZE 4096
-#define SAMPLE_FORMAT ma_format_f32
+#define SOUND_COUNT 5
 
-struct sound {
-public:
-    std::string s_filename;
-    ma_audio_buffer s_buffer;
-    ma_audio_buffer_config s_buffer_config;
-    ma_uint64 s_len_in_pcm_frames;
-    float* s_raw_audio_data;
-    bool s_playing;
-    bool s_interrupt;
-    bool s_looping;
-
-    // add default constructor (implicit ones are not a thing if you specify an overload)
-    sound(std::string, bool);
-    sound(const sound &);
-    sound();
-    sound operator = (const sound&);
-    ~sound();
-    void uninit();
-private:
-    void bufferInit();
+enum sound_idx {    // sounds in the sound array need to be added in this exact same order
+    THEME = 0,
+    TETRIS,
+    SOFT_DROP,
+    HARD_DROP,
+    LEVEL_UP
 };
 
 
 struct sound_manager {
 public:
-
     sound_manager();
     ~sound_manager();
-    //void loadSounds(); // TO DO
-    void addSound(std::string, bool);
-    void on();
-    void off();
-    void playSound(std::string);
-    void playSound(int);
-    int sound_count;
+    void on();                          // starts the audio feed
+    void off();                         // stops the audio feed
+    void playSound(int);                // adds a sound to the audio feed by the index of sounds vector
+    void initSounds(const char**, int size); // adds all of the sounds to the sounds array by file name
+    void setRepeating(sound_idx, bool);
 
-    std::vector<sound> sounds;
+    sound sounds[SOUND_COUNT];
+
 private:
     ma_device player;
     ma_device_config player_config;
-
 };
 
+// function used to mix multiple sounds' audio data so sounds can play at the same time
 ma_uint32 read_and_mix_pcm_frames_f32(ma_audio_buffer*, float*, ma_uint32);
+
+// function used to callback raw audio data when a sound is scheduled or is playing
 void dataCallback(ma_device*, void*, const void*, ma_uint32);
+
+#endif // SOUND_MANAGER_H
