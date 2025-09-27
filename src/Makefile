@@ -5,8 +5,8 @@ OPTIONS=-std=c++17 -Wall -lncurses -lpthread -lm -framework CoreFoundation -fram
 
 all: tetris
 
-tetris: test.cpp tetris_grid.o tetris_tetromino.o tetris_bag.o sound_manager.o
-	$(COMP) $(OPTIONS) test.cpp tetris_grid.o tetris_tetromino.o tetris_bag.o sound_manager.o -o tetris
+tetris: main.cpp tetris_grid.o tetris_tetromino.o tetris_bag.o sound_manager.o
+	$(COMP) $(OPTIONS) main.cpp tetris_grid.o tetris_tetromino.o tetris_bag.o sound_manager.o -o tetris
 
 tetris_grid.o: tetris_grid.cpp tetris_grid.h 
 	$(COMP) $(OPTIONS) -c tetris_grid.cpp -o tetris_grid.o
