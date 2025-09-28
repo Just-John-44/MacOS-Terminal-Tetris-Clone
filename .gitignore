@@ -1,6 +1,6 @@
 *.DS_Store
 .vscode/
-attachments/sounds/silly
+attachments/sounds/silly/
 changes.txt
 *.o
-tests
+tests/

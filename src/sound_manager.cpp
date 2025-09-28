@@ -48,11 +48,11 @@ sound_manager::sound_manager(){
     }
 }
 
-//
+
 sound_manager::~sound_manager(){
-    for (int i = 0; i < SOUND_COUNT; i++){
-        sounds[i].~sound();
-    }
+    // for (int i = 0; i < SOUND_COUNT; i++){
+    //     sounds[i].~sound();
+    // }
     ma_device_uninit(&player);
 }
 
