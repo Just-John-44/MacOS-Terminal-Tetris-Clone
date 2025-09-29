@@ -1,16 +1,16 @@
-#ifndef TETRIS_TETROMINO_H
-#define TETRIS_TETROMINO_H
+#ifndef TETROSE_TETROMINO_H
+#define TETROSE_TETROMINO_H
 
-#include "tetris_types.h"
+#include "tetrose_types.h"
 
 // John Wesley Thompson
 // Created: 8/10/2024
 // Last Edited: 12/30/2024
-// tetris_tetromino.h
+// tetrose_tetromino.h
 
 // DATA =======================================================================
 
-// The following tetromino rotations follow the NES tetris rules.
+// The following tetromino rotations follow the NES tetrose rules.
 extern const int L_TETROMINO_ARR[3][12];
 extern const int J_TETROMINO_ARR[3][12];
 extern const int T_TETROMINO_ARR[3][12];

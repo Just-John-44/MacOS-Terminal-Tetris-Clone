@@ -1,8 +1,8 @@
-#ifndef TETRIS_TYPES_H
-#define TETRIS_TYPES_H
+#ifndef TETROSE_TYPES_H
+#define TETROSE_TYPES_H
 
 // These are used to set the type variable 
-// in the tetris_tetromino class.
+// in the tetrose_tetromino class.
 enum tetromino_type {
     L_TETROMINO = 1,
     J_TETROMINO,

@@ -1,11 +1,11 @@
-#ifndef TETRIS_BAG_H
-#define TETRIS_BAG_H
+#ifndef TETROSE_BAG_H
+#define TETROSE_BAG_H
 
 // John Wesley Thompson 
 // Created: 12/31/2024
 // Last Edited: 12/31/2024
 
-#include "tetris_tetromino.h"
+#include "tetrose_tetromino.h"
 #include <vector>
 #include <random>
 

@@ -1,10 +1,10 @@
 // John Wesley Thompson
 // Created: 9/27/2025
 // Last Edited: 9/27/2025
-// tetris_io.cpp
+// tetrose_io.cpp
 
 
-#include "tetris_io.h"
+#include "tetrose_io.h"
 #include <thread>
 
 
@@ -46,10 +46,10 @@ void initTerminal(){
 }
 
 // initWindowData initializes the window data struct with all windows' location
-// and sizes based on a tetris grid.
-// Input: the window data structure to be initialized, and a tetris grid to 
+// and sizes based on a tetrose grid.
+// Input: the window data structure to be initialized, and a tetrose grid to 
 // base all of the window locations off of.
-void initWindowData(window_data &wd, tetris_grid &grid){
+void initWindowData(window_data &wd, tetrose_grid &grid){
 
     wd.grid_win_start_y = 9;
     wd.grid_win_start_x = 3;
@@ -88,8 +88,8 @@ void initWindowData(window_data &wd, tetris_grid &grid){
 
 // printTerminalSizeMessage prompts the user at the beginning of the program to
 // expand the terminal window if it is too small to play the game.
-// Input: a tetris_grid struct to the grid size information from
-void printTerminalSizeMessage(tetris_grid &grid){
+// Input: a tetrose_grid struct to the grid size information from
+void printTerminalSizeMessage(tetrose_grid &grid){
 
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
@@ -116,7 +116,7 @@ void printTerminalSizeMessage(tetris_grid &grid){
     }
 }
 
-// printScore prints the tetris game score to the right side of the grid.
+// printScore prints the tetrose game score to the right side of the grid.
 // Input: the window data structure and a score to print
 void printScore(window_data &wd, int score){
 
@@ -126,12 +126,12 @@ void printScore(window_data &wd, int score){
     wrefresh(wd.score_win);
 }
 
-// printTetrisFrame prints the tetris title, and a border for the tetris grid,
+// printtetroseFrame prints the tetrose title, and a border for the tetrose grid,
 // the score window, and the next tetromino window.
-// Input: a tetris_grid struct to the grid size information from
-void printTetrisFrame(tetris_grid &grid){
+// Input: a tetrose_grid struct to the grid size information from
+void printtetroseFrame(tetrose_grid &grid){
 
-    // the rows of the tetris frame that come after the title
+    // the rows of the tetrose frame that come after the title
     std::string title_base = "[X]";
     for (int i = 0; i < grid.length; i++){
         title_base += "[ ]";
@@ -150,59 +150,23 @@ void printTetrisFrame(tetris_grid &grid){
     }
     base_row += "[X]"; 
 
-    // buffers that go after the grid rows following the tetris title
+    // buffers that go after the grid rows following the tetrose title
     std::string post_title_base_buffer = "[ ][ ][ ][X]\n";
     std::string post_grid_row_buffer1 = "---------| |\n";
     std::string post_grid_row_buffer2 = "         | |\n";
     std::string post_base_row_buffer = "[X][X][X][X]\n";
-
-
-    // buffers that go after each line of the tetris title
-    int tetris_title_length = 41;
-    int tetris_title_buffer_length = grid_row.length() + 
-                                     post_grid_row_buffer1.length() - 
-                                     tetris_title_length;
-
-    std::string post_title_buffer_r1 = "";
-    for (int i = 0; i < tetris_title_buffer_length - 2; i++){
-
-        post_title_buffer_r1 += "_";
-    }
-    post_title_buffer_r1 += ",\n";
-
-    std::string post_title_buffer_middle = "";
-    for (int i = 0; i < tetris_title_buffer_length - 2; i++){
-        
-        post_title_buffer_middle += " ";
-    }
-    post_title_buffer_middle += "|\n";
-
-    std::string post_title_buffer_r8 = "";
-    for (int i = 0; i < tetris_title_buffer_length - 2; i++){
-        
-        post_title_buffer_r8 += "_";
-    }
-    post_title_buffer_r8 += "]\n";
     
-    // the tetris title
+    // the tetrose title
     move(0, 0);
     printw(
-        ",________________________________________%s"
-        "|  _____|_____|_____|_____|_____|_____  |%s"
-        "| [_, ,_] ,___]_, ,_]  _  ]_, ,_] ,___] |%s"
-        "|   | | | [__ | | | | [_] | | | | [___  |%s"
-        "|   | | | ,__]| | | | ,  _] | | [___, ] |%s"
-        "|   | | | [___| | | | |\\ \\|_] [_|___] | |%s"
-        "|   [_] [_____] [_] [_] \\_\\_____]_____] |%s"
-        "[_______|_____|_____|_____|_____|_______|%s",
-        post_title_buffer_r1.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_middle.c_str(),
-        post_title_buffer_r8.c_str()
+        ",______________________________________________,\n"
+        "|  _____|_____|_____|_____|_____|_____|_____   |\n"
+        "| [_, ,_] ,___]_, ,_]  _  ] ,_, ] ,___] ,___]  |\n"
+        "|   | | | [__ | | | | [_] | | | | [___| [__    |\n"
+        "|   | | | ,__]| | | | ,  _] | | [___, ] ,__]   |\n"
+        "|   | | | [___| | | | |\\ \\| [_] |___] | [___   |\n"
+        "|   [_] [_____] [_] [_] \\_\\_____]_____]_____]  |\n"
+        "[_______|_____|_____|_____|_____|_____|________]\n"
     );
 
     printw(title_base.c_str());

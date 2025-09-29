@@ -1,7 +1,7 @@
 // // John Wesley Thompson
 // // Created: 1/4/2024
 // // Last edited: 9/27/2025
-// // tetris_theme.cpp
+// // sound_manager.cpp
 
 #include "sound_manager.h"
 #include "sound.h"
@@ -13,16 +13,16 @@
 // Driken5482 https://pixabay.com/users/driken5482-45721595/
 // big_crash.mp3
 // freesound_community https://pixabay.com/users/freesound_community-46691455/
-// Tetris.mp3
+// theme.mp3
 // jkotas1 https://archive.org/details/@jkotas1
-// tetris.mp3
+// tetrose.mp3
 // RasoolAsaad https://pixabay.com/users/rasoolasaad-47313572/
 // level_up.mp3
 // mattwasser https://pixabay.com/sound-effects/coin-upaif-14631/
 // 
 const char* sound_filenames[SOUND_COUNT] = {
     "../attachments/sounds/theme.mp3",
-    "../attachments/sounds/tetris.mp3",
+    "../attachments/sounds/tetrose.mp3",
     "../attachments/sounds/small_crash.mp3",
     "../attachments/sounds/big_crash.mp3",
     "../attachments/sounds/level_up.mp3"

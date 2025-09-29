@@ -13,10 +13,10 @@
 #include <ncurses.h>
 #include <chrono>
 #include <thread>
-#include "tetris_grid.h"
-#include "tetris_tetromino.h"
+#include "tetrose_grid.h"
+#include "tetrose_tetromino.h"
 #include "sound_manager.h"
-#include "tetris_io.h"
+#include "tetrose_io.h"
 
 #define START_UPDATE_SPEED_MS 500
 
@@ -37,41 +37,17 @@ struct game_data {
 unsigned int calcScore(int, int);
 bool updateRound(int &, int &);
 void increaseGameSpeed(game_data &);
-void playTetris(tetris_grid &, game_data &, window_data &, sound_manager &);
+void playtetrose(tetrose_grid &, game_data &, window_data &, sound_manager &);
 void initGameData(game_data &);
-void getUserInput(tetris_grid &, game_data &, sound_manager &);
-void updateGameAndRefresh(tetris_grid &, game_data &, window_data &, sound_manager &);
+void getUserInput(tetrose_grid &, game_data &, sound_manager &);
+void updateGameAndRefresh(tetrose_grid &, game_data &, window_data &, sound_manager &);
 
-// TO DO: put the sound class into its own file.
-// TO DO: make sound manager less dynamic. It can simply be designed to hold
-//        the necessary number of sound effects and have enums for each. I think
-//        I tried to make things way too robust for a program like this.
-// TO DO: make the game end like it's supposed to.
-// TO DO: create a more reliable way to initialize the terminal in. 
-//        terminal_init so its changes will affect all translation units.
-//        I dont want initscr to be called multiple times, for example.
-// TO DO: make the terminal print in only black and white if it doesn't support colors.
-// TO DO: fix game volume
-
-// FOR DEBUGGING
-void printInfo(tetris_grid & grid, game_data &gd){
-
-    int y;
-    
-    y = 40;
-    move(y, 0);
-    clrtoeol();
-    printw("total rows cleared: %i", gd.curr_round_cleared_rows);
-    move(y += 2, 0);
-    clrtoeol();
-    printw("game speed ms: %i", gd.shift_wait_ms);
-}
 
 int main(){
 
     initTerminal();
 
-    tetris_grid grid;
+    tetrose_grid grid;
     window_data win_data;
     game_data game_data;
     sound_manager sound_manager;
@@ -81,7 +57,7 @@ int main(){
 
     printTerminalSizeMessage(grid);
 
-    playTetris(grid, game_data, win_data, sound_manager);
+    playtetrose(grid, game_data, win_data, sound_manager);
 
     printGameOver(win_data);
 
@@ -94,9 +70,9 @@ int main(){
 
 // getUserInput simply handles all immediate input from the user. This includes
 // tetromino shifts, and game quit conditions.
-// Input: a tetris_grid for manipulating the game, and a game_data for writing
+// Input: a tetrose_grid for manipulating the game, and a game_data for writing
 //        game input data to
-void getUserInput(tetris_grid &grid, game_data &gd, sound_manager &sm){
+void getUserInput(tetrose_grid &grid, game_data &gd, sound_manager &sm){
 
     int in; 
     in = getch();
@@ -141,9 +117,9 @@ void getUserInput(tetris_grid &grid, game_data &gd, sound_manager &sm){
 // updateGameAndRefresh handles all of the game update conditions and window
 // refreshes. This is the function that automatically shifts the tetromino
 // downwards at increasing speeds and updates all of the game windows.
-// Input: a tetris_grid for manipulating a game, a game_data for reading and 
+// Input: a tetrose_grid for manipulating a game, a game_data for reading and 
 //        writing game data to, and a window_data for refreshing the windows
-void updateGameAndRefresh(tetris_grid &grid, game_data &gd, window_data &wd, sound_manager &sm){
+void updateGameAndRefresh(tetrose_grid &grid, game_data &gd, window_data &wd, sound_manager &sm){
 
     bool shifted;
     time_point now = std::chrono::high_resolution_clock::now();
@@ -180,7 +156,7 @@ void updateGameAndRefresh(tetris_grid &grid, game_data &gd, window_data &wd, sou
                 printScore(wd, gd.score);
 
                 if (rows_cleared == 4){
-                    sm.playSound(TETRIS);
+                    sm.playSound(TETROSE);
                 }
             }  
             
@@ -200,19 +176,18 @@ void updateGameAndRefresh(tetris_grid &grid, game_data &gd, window_data &wd, sou
     // Refresh the screen if any change has been made to the grid.
     if (gd.user_input || shifted){
         grid.printGrid(wd.grid_win);
-        printInfo(grid, gd);
         refresh();     
         gd.user_input = false; 
     }
 }
 
-// playTetris contains the entire game loop for the tetris game.
-// Input: the window_data struct for printing, and the tetris grid for playing
+// playtetrose contains the entire game loop for the tetrose game.
+// Input: the window_data struct for printing, and the tetrose grid for playing
 //        the game
-void playTetris(tetris_grid &grid, game_data &gd, window_data &wd, sound_manager &sm){
+void playtetrose(tetrose_grid &grid, game_data &gd, window_data &wd, sound_manager &sm){
 
     grid.setCurrTetrominoOnGrid();
-    printTetrisFrame(grid);
+    printtetroseFrame(grid);
     grid.printGrid(wd.grid_win);
     printScore(wd, gd.score);
     printNextTetromino(wd, grid.next_tet);

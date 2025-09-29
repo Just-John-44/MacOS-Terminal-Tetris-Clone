@@ -1,7 +1,7 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Last Edited: 12/30/2024
-// tetris_grid.h
+// tetrose_grid.h
 
 #ifndef _TETROMINOS_H
 #define _TETROMINOS_H
@@ -9,17 +9,17 @@
 #include <ncurses.h>
 #include <ctime>
 #include <vector>
-#include "tetris_types.h"
-#include "tetris_tetromino.h"
-#include "tetris_bag.h"
+#include "tetrose_types.h"
+#include "tetrose_tetromino.h"
+#include "tetrose_bag.h"
 
-// TETRIS_GRID CLASS ==========================================================
+// tetrose_GRID CLASS ==========================================================
 
-// These are the normal tetris dimensions.
+// These are the normal tetrose dimensions.
 const int DEFAULT_HEIGHT = 20;
 const int DEFAULT_LENGTH = 10;
 
-class tetris_grid {
+class tetrose_grid {
 public:
 
     int height;
@@ -28,7 +28,7 @@ public:
     tetromino* curr_tet;
     tetromino* next_tet;
     
-    tetris_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
+    tetrose_grid(int y = DEFAULT_HEIGHT, int x = DEFAULT_LENGTH);
     void printGrid(WINDOW* win) const;
     void generateNextTetromino();
     bool setCurrTetrominoOnGrid();

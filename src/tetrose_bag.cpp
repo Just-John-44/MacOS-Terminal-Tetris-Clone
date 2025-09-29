@@ -2,7 +2,7 @@
 // Created: 12/31/2024
 // Last Edited: 1/1/2024
 
-#include "tetris_bag.h"
+#include "tetrose_bag.h"
 
 // the default constructor for bag sets up the random number generator and
 // fills the tetrominoes array with all of the different tetrominoes.

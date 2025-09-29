@@ -13,7 +13,7 @@
 
 enum sound_idx {    // sounds in the sound array need to be added in this exact same order
     THEME = 0,
-    TETRIS,
+    TETROSE,
     SOFT_DROP,
     HARD_DROP,
     LEVEL_UP

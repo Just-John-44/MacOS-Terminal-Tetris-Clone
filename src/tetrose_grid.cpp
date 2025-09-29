@@ -1,23 +1,23 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Last Edited: 12/30/2024
-// tetris_grid.cpp
+// tetrose_grid.cpp
 
 // This file includes all of the implementation for the tetromino class and
-// tetris_grid class.
+// tetrose_grid class.
 
 #include <iostream>
 #include <ncurses.h>
 
-#include "tetris_grid.h"
-#include "tetris_tetromino.h"
+#include "tetrose_grid.h"
+#include "tetrose_tetromino.h"
 
 
 // ============================================================================
-// TETRIS_GRID CLASS 
+// tetrose_GRID CLASS 
 // ============================================================================
 
-tetris_grid::tetris_grid(int y, int x){
+tetrose_grid::tetrose_grid(int y, int x){
 
     height = y;
     length = x;
@@ -38,7 +38,7 @@ tetris_grid::tetris_grid(int y, int x){
 
 // TERMINAL OUTPUT ============================================================
 
-void tetris_grid::printGrid(WINDOW* win) const {
+void tetrose_grid::printGrid(WINDOW* win) const {
     // int win_height, win_length;
     // getmaxyx(win, win_height, win_length);
 
@@ -70,11 +70,11 @@ void tetris_grid::printGrid(WINDOW* win) const {
     wrefresh(win);
 }
 
-// TETRIS STACK MANIPULATION ==================================================
+// tetrose STACK MANIPULATION ==================================================
 
 // clearCompleteRows replaces all of the rows on the grid with all non-empty
 // values with empty rows, nd then shifts any floating rows downwards.
-int tetris_grid::clearCompleteRows(){ 
+int tetrose_grid::clearCompleteRows(){ 
     bool row_full;
     int wiped_row_ct = 0;
     for (int i = 0; i < height; i++){
@@ -162,7 +162,7 @@ int tetris_grid::clearCompleteRows(){
 // Input: how far it should shift on the grid, and the direction it should
 //        shift
 // Output: true if the shift was succesful, and false if the shift was not
-bool tetris_grid::shiftTetromino(int y_shift_ct, int x_shift_ct){
+bool tetrose_grid::shiftTetromino(int y_shift_ct, int x_shift_ct){
 
 
     // move grid_pos in the appropriate direction
@@ -198,7 +198,7 @@ bool tetris_grid::shiftTetromino(int y_shift_ct, int x_shift_ct){
 // the shift is successful.
 // Input: an x and y modifier for the tetromino's grid location and a value that 
 //        commits the modification of the tet positions or doesn't
-bool tetris_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct, bool commit){
+bool tetrose_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct, bool commit){
 
     int prev_tet_y_pos = tet_y_pos;
     int prev_tet_x_pos = tet_x_pos;
@@ -229,7 +229,7 @@ bool tetris_grid::peekShiftTetromino(int y_shift_ct, int x_shift_ct, bool commit
 // for it to shift to first. This function changes the grid data and does not
 // reprint the tetromino.
 // Input: a direction for rotation
-bool tetris_grid::rotateTetromino(direction dir){
+bool tetrose_grid::rotateTetromino(direction dir){
 
     if (curr_tet->type == O_TETROMINO){
         return false;
@@ -393,7 +393,7 @@ bool tetris_grid::rotateTetromino(direction dir){
 
 // dropTetromino shifts the current tetromino as far down as it can go on the
 // grid.
-void tetris_grid::dropTetromino(){
+void tetrose_grid::dropTetromino(){
     removeTetromino();
 
     while(peekShiftTetromino(1, 0, true));
@@ -403,9 +403,9 @@ void tetris_grid::dropTetromino(){
 
 // colliding checks to see that if the current tetromino were to be on the
 // grid, if it would be out of bounds or colliding with any squares. 
-bool tetris_grid::colliding() const {
+bool tetrose_grid::colliding() const {
     
-    // Return true if the tetris block colliding with a border.
+    // Return true if the tetrose block colliding with a border.
     if (tet_y_pos + curr_tet->topmost_sqr < 0 || 
         tet_y_pos + curr_tet->bottommost_sqr >= height ||
         tet_x_pos + curr_tet->leftmost_sqr < 0 || 
@@ -431,7 +431,7 @@ bool tetris_grid::colliding() const {
 // removeTetromino replaces the values on the grid that correspond to the
 // tetromino's values with empty squares. IT DOES NOT CHECK FOR OUT OF BOUNDS
 // OR COLLISIONS.
-void tetris_grid::removeTetromino(){
+void tetrose_grid::removeTetromino(){
 
     for (int i = 0; i < curr_tet->sstride; i++){
         for (int j = 0; j < curr_tet->sstride; j++){
@@ -444,10 +444,10 @@ void tetris_grid::removeTetromino(){
 
 }
 
-// placeTetromino replaces the values at the tetris grid's tetromino position
+// placeTetromino replaces the values at the tetrose grid's tetromino position
 // with the values of the current tetromino. IT DOES NOT CHECK FOR OUT OF
 // BOUNDS OR COLLISIONS.
-void tetris_grid::placeTetromino(){
+void tetrose_grid::placeTetromino(){
 
     int square_val = 0;
     for (int i = 0; i < curr_tet->sstride; i++){
@@ -465,7 +465,7 @@ void tetris_grid::placeTetromino(){
 // generateNextTetromino sets the current tetromino pointer equal to the next
 // tetromino pointer and assigns the next tetromino pointer to a random
 // tetromino.
-void tetris_grid::generateNextTetromino(){
+void tetrose_grid::generateNextTetromino(){
     curr_tet->resetRotation();
     curr_tet = next_tet;
     
@@ -478,7 +478,7 @@ void tetris_grid::generateNextTetromino(){
 
 // setCurrTetrominoOnGrid assigns the tetromino values to the top of the grid 
 // where each tetromino is supposed to start.
-bool tetris_grid::setCurrTetrominoOnGrid(){
+bool tetrose_grid::setCurrTetrominoOnGrid(){
 
     tet_x_pos = (length - curr_tet->sstride) / 2;
     tet_y_pos = -curr_tet->topmost_sqr; // this sets it to the highest value in the 

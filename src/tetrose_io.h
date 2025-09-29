@@ -1,13 +1,13 @@
 // John Wesley Thompson
 // Created: 9/27/2025
 // Last Edited: 9/27/2025
-// tetris_io.h
+// tetrose_io.h
 
-#ifndef TETRIS_IO_H
-#define TETRIS_IO_H
+#ifndef TETROSE_IO_H
+#define TETROSE_IO_H
 
 #include <ncurses.h>
-#include "tetris_grid.h"
+#include "tetrose_grid.h"
 
 // This struct is used to keep track of all of the window positions and sizes.
 struct window_data {
@@ -38,10 +38,10 @@ struct window_data {
 };
 
 void initTerminal();
-void initWindowData(window_data &, tetris_grid &);
-void printTerminalSizeMessage(tetris_grid &);
+void initWindowData(window_data &, tetrose_grid &);
+void printTerminalSizeMessage(tetrose_grid &);
 void printScore(window_data &, int);
-void printTetrisFrame(tetris_grid&);
+void printtetroseFrame(tetrose_grid&);
 void printNextTetromino(window_data &, tetromino*);
 void printRound(window_data &, int);
 void printGameOver(window_data &wd);
@@ -49,4 +49,4 @@ void printGameOver(window_data &wd);
 
 
 
-#endif // TETRIS_IO_H
+#endif // tetrose_IO_H

@@ -1,10 +1,10 @@
 // John Wesley Thompson
 // Created: 8/10/2024
 // Last Edited: 12/30/2024
-// tetris_tetromino.h
+// tetrose_tetromino.cpp
 
 
-#include "tetris_tetromino.h"
+#include "tetrose_tetromino.h"
 
 
 // DATA =======================================================================
