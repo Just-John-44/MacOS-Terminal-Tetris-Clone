@@ -7,12 +7,11 @@ This program is my attempt at creating a falling block game within the MacOS ter
 <br><br>
 
 <!-- put icons of language usage here and links to the libraries used. basically the tech stack-->
-<div style="display: flex; justify-content: space-between;">
-  <div><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg" height="40"/></div>
-  <div><img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg" height="40"/></div>
-  <div><img src="attachments/readme/miniaudio_icon.png" height="40"/></div>
-  <div><img src="attachments/readme/ncurses.png" height="40"/></div>
-</div><br>
+<img align="left" height="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/cplusplus/cplusplus-original.svg"/>
+<img align="left" height="40" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/c/c-original.svg"/>
+<img align="left" height="40" src="attachments/readme/miniaudio_icon.png"/>
+<img align="left" height="40" src="attachments/readme/ncurses.png"/>
+<br><br>
 
 
 ## **Features**
@@ -23,10 +22,8 @@ This program is my attempt at creating a falling block game within the MacOS ter
 + player points, round count, and next tetromino are all displayed during gameplay
 + hand-typed ascii art is used for the entire game
 
-<br>
-<img src="attachments/readme/game_play.gif" width="350"/>
-<img src="attachments/readme/game_over.gif" width="350"/>
-<br><br>
+<img align="left" width="350" src="attachments/readme/game_play.gif"/>
+<img width="350" src="attachments/readme/game_over.gif"/>
 
 ## **Requirements and Build**
 ---
@@ -52,7 +49,6 @@ make tetrose
 ./tetrose
 ```
 
-<br>
 
 ## **How to Play**
 ---
@@ -66,7 +62,7 @@ make tetrose
 | Left Arrow        | Moves the tetromino to the left    |
 | Right Arrow       | Moves the tetromino to the right   |
 | Down Arrow        | Moves the tetromino downwards      |
-<br>
+
 
 ## **Sound Effect and Theme Credits**
 ---
