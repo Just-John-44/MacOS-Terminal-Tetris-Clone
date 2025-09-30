@@ -94,8 +94,8 @@ void printTerminalSizeMessage(tetrose_grid &grid){
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
 
-    int min_term_height = grid.height + 30;
-    int min_term_length = grid.length * 3 + 30;
+    int min_term_height = grid.height + 15;
+    int min_term_length = grid.length * 3 + 25;
 
     while (max_y < min_term_height ||
            max_x < min_term_length)

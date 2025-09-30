@@ -60,7 +60,7 @@ int main(){
     playtetrose(grid, game_data, win_data, sound_manager);
 
     printGameOver(win_data);
-
+    std::this_thread::sleep_for(duration_ms(1000)); 
     nodelay(stdscr, FALSE);
     getch();
     endwin();
